@@ -1,3 +1,22 @@
+To run type 
+.\mvnw.cmd spring-boot:run
+
+
+1. Install Java 21
+        ↓
+2. Install MySQL
+        ↓
+3. Clone/download project
+        ↓
+4. Create smart_financial_expense database
+        ↓
+5. Configure their local DB credentials
+        ↓
+6. Run .\mvnw.cmd spring-boot:run
+        ↓
+7. Open localhost
+
+
 Development approach
 
 We should not ask Antigravity to create the entire project in one huge prompt. We'll build it in stages:

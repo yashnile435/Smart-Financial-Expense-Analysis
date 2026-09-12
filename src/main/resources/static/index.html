@@ -18,9 +18,17 @@
                 <i class="bi bi-wallet2 text-primary fs-4"></i>
                 <span>Smart Financial Expense Analysis</span>
             </a>
-            <span class="badge bg-primary-subtle text-primary border border-primary px-3 py-2 rounded-pill">
-                Stage 1: Project Setup
-            </span>
+            <div class="d-flex align-items-center gap-2">
+                <a href="expenses.html" class="btn btn-outline-light btn-sm rounded-pill px-3 fw-semibold">
+                    <i class="bi bi-cash-coin me-1"></i> Expenses
+                </a>
+                <a href="budgets.html" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold text-white border-primary">
+                    <i class="bi bi-pie-chart me-1"></i> Budgets
+                </a>
+                <span class="badge bg-primary-subtle text-primary border border-primary px-3 py-2 rounded-pill">
+                    Stage 5: Budget Management (Active)
+                </span>
+            </div>
         </div>
     </nav>
 
@@ -31,17 +39,25 @@
                 <div class="card shadow-lg border-0 rounded-4 overflow-hidden mb-4">
                     <div class="card-header bg-gradient-primary text-white p-4 text-center">
                         <h1 class="h3 fw-bold mb-2">Smart Financial Expense Analysis</h1>
-                        <p class="lead mb-0 text-white-50">Intelligent, full-stack personal finance and expense tracking platform</p>
+                        <p class="lead mb-0 text-white-50">Deterministic, full-stack personal finance and expense tracking platform</p>
                     </div>
                     <div class="card-body p-4 p-md-5">
-                        <div class="alert alert-info d-flex align-items-center mb-4 rounded-3" role="alert">
-                            <i class="bi bi-info-circle-fill fs-4 me-3 text-info"></i>
-                            <div>
-                                <h5 class="alert-heading mb-1 fw-semibold">Backend and project setup in progress.</h5>
-                                <p class="mb-0 text-secondary small">
-                                    Stage 1 setup has initialized the Spring Boot backend, standard package architecture, 
-                                    MySQL configuration, and local development endpoints.
+                        <div class="alert alert-primary d-flex align-items-center mb-4 rounded-3" role="alert">
+                            <i class="bi bi-info-circle-fill fs-4 me-3 text-primary"></i>
+                            <div class="flex-grow-1">
+                                <h5 class="alert-heading mb-1 fw-semibold">Stage 5: Budget Management in progress.</h5>
+                                <p class="mb-2 text-secondary small">
+                                    Stages 1–4 (Project Setup, Database Entities, Authentication, and Expense Management) are completed. 
+                                    Active development is currently focused on Stage 5: Monthly Budgets, Spending Limits, and Utilization Tracking.
                                 </p>
+                                <div class="d-flex gap-2">
+                                    <a href="expenses.html" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold">
+                                        <i class="bi bi-wallet2 me-1"></i> Expenses
+                                    </a>
+                                    <a href="budgets.html" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold">
+                                        <i class="bi bi-pie-chart me-1"></i> Open Budget Management
+                                    </a>
+                                </div>
                             </div>
                         </div>
 
@@ -106,31 +122,31 @@
 
                         <!-- Staged Roadmap Status -->
                         <h5 class="fw-bold mb-3">Project Stages</h5>
-                        <ul class="list-group list-group-flush border rounded-3 overflow-hidden">
-                            <li class="list-group-item d-flex justify-content-between align-items-center bg-primary-subtle text-primary-emphasis fw-semibold">
-                                <span><i class="bi bi-check-circle-fill text-primary me-2"></i>Stage 1: Project Setup (Java + Spring Boot + Maven + MySQL)</span>
+                        <ul id="projectStagesList" class="list-group list-group-flush border rounded-3 overflow-hidden">
+                            <li class="list-group-item d-flex justify-content-between align-items-center stage-item stage-completed bg-white">
+                                <span><i class="bi bi-check-circle-fill text-success me-2"></i>Stage 1: Project Setup (Java + Spring Boot + Maven + MySQL)</span>
+                                <span class="badge bg-success">Completed</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center stage-item stage-completed bg-white">
+                                <span><i class="bi bi-check-circle-fill text-success me-2"></i>Stage 2: Database & Entities</span>
+                                <span class="badge bg-success">Completed</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center stage-item stage-completed bg-white">
+                                <span><i class="bi bi-check-circle-fill text-success me-2"></i>Stage 3: Authentication (Registration, Login, Roles)</span>
+                                <span class="badge bg-success">Completed</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center stage-item stage-active bg-primary-subtle text-primary-emphasis fw-semibold">
+                                <span><i class="bi bi-record-circle-fill text-primary me-2"></i>Stage 4: Expense Management (CRUD, Search, Filter)</span>
                                 <span class="badge bg-primary">Active</span>
                             </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center text-muted">
-                                <span><i class="bi bi-clock me-2"></i>Stage 2: Database & Entities</span>
-                                <span class="badge bg-secondary">Upcoming</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center text-muted">
-                                <span><i class="bi bi-clock me-2"></i>Stage 3: Authentication (Registration, Login, Roles)</span>
-                                <span class="badge bg-secondary">Upcoming</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center text-muted">
-                                <span><i class="bi bi-clock me-2"></i>Stage 4: Expense Management (CRUD, Search, Filter)</span>
-                                <span class="badge bg-secondary">Upcoming</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center text-muted">
+                            <li class="list-group-item d-flex justify-content-between align-items-center stage-item stage-upcoming text-muted bg-light-subtle">
                                 <span><i class="bi bi-clock me-2"></i>Stages 5-10: Budgets, Analytics, Dashboard, UI & Testing</span>
                                 <span class="badge bg-secondary">Upcoming</span>
                             </li>
                         </ul>
                     </div>
                     <div class="card-footer bg-light text-center py-3 text-muted small">
-                        Smart Financial Expense Analysis &copy; 2026 &bull; Initial Architecture & Environment Verification
+                        Smart Financial Expense Analysis &copy; 2026 &bull; Stage 4: Expense Management
                     </div>
                 </div>
             </div>

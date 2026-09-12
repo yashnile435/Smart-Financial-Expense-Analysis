@@ -49,4 +49,21 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
      * @return true if budget exists, false otherwise
      */
     boolean existsByUserIdAndMonthAndYear(Long userId, int month, int year);
+
+    /**
+     * Find a budget by its primary ID and user ID for ownership verification.
+     *
+     * @param id     ID of the budget
+     * @param userId ID of the user
+     * @return Optional containing matching budget if owned by user
+     */
+    Optional<Budget> findByIdAndUserId(Long id, Long userId);
+
+    /**
+     * Find all budgets for a user ordered by year descending and month descending.
+     *
+     * @param userId ID of the user
+     * @return List of budgets ordered with most recent first
+     */
+    List<Budget> findByUserIdOrderByYearDescMonthDesc(Long userId);
 }
