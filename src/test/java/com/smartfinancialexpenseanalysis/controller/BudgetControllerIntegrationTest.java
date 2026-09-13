@@ -28,6 +28,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -455,6 +456,197 @@ class BudgetControllerIntegrationTest {
         mockMvc.perform(post("/api/budgets")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(username = "alice.budget@example.com")
+    @DisplayName("27. USER can edit own budget amount and changes are persisted in MySQL")
+    void testUpdateBudget_AmountPersistedInDatabase() throws Exception {
+        Budget budget = budgetRepository.save(new Budget(userAlice, 3, 2026, new BigDecimal("10000.00")));
+
+        BudgetRequest updateRequest = new BudgetRequest(3, 2026, new BigDecimal("15000.00"));
+
+        mockMvc.perform(put("/api/budgets/" + budget.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(budget.getId()))
+                .andExpect(jsonPath("$.budgetAmount").value(15000.00));
+
+        Budget persisted = budgetRepository.findById(budget.getId()).orElseThrow();
+        assertEquals(0, new BigDecimal("15000.00").compareTo(persisted.getAmount()));
+        assertEquals(3, persisted.getMonth());
+        assertEquals(2026, persisted.getYear());
+    }
+
+    @Test
+    @WithMockUser(username = "alice.budget@example.com")
+    @DisplayName("28. USER can edit month/year when no duplicate exists")
+    void testUpdateBudget_ChangeMonthAndYear_Success() throws Exception {
+        Budget budget = budgetRepository.save(new Budget(userAlice, 3, 2026, new BigDecimal("10000.00")));
+
+        BudgetRequest updateRequest = new BudgetRequest(5, 2026, new BigDecimal("12000.00"));
+
+        mockMvc.perform(put("/api/budgets/" + budget.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(budget.getId()))
+                .andExpect(jsonPath("$.month").value(5))
+                .andExpect(jsonPath("$.year").value(2026))
+                .andExpect(jsonPath("$.budgetAmount").value(12000.00));
+
+        Budget persisted = budgetRepository.findById(budget.getId()).orElseThrow();
+        assertEquals(5, persisted.getMonth());
+        assertEquals(2026, persisted.getYear());
+        assertEquals(0, new BigDecimal("12000.00").compareTo(persisted.getAmount()));
+    }
+
+    @Test
+    @WithMockUser(username = "alice.budget@example.com")
+    @DisplayName("29. Editing same month/year does not trigger false duplicate error")
+    void testUpdateBudget_SameMonthYear_DoesNotTriggerDuplicate() throws Exception {
+        Budget budget = budgetRepository.save(new Budget(userAlice, 3, 2026, new BigDecimal("10000.00")));
+
+        BudgetRequest updateRequest = new BudgetRequest(3, 2026, new BigDecimal("18000.00"));
+
+        mockMvc.perform(put("/api/budgets/" + budget.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.budgetAmount").value(18000.00));
+    }
+
+    @Test
+    @WithMockUser(username = "alice.budget@example.com")
+    @DisplayName("30. Editing to an already-existing month/year for user is rejected (409 Conflict)")
+    void testUpdateBudget_ExistingMonthYear_ReturnsConflict() throws Exception {
+        Budget marchBudget = budgetRepository.save(new Budget(userAlice, 3, 2026, new BigDecimal("10000.00")));
+        budgetRepository.save(new Budget(userAlice, 4, 2026, new BigDecimal("12000.00")));
+
+        // Attempt to edit March budget to April 2026
+        BudgetRequest updateRequest = new BudgetRequest(4, 2026, new BigDecimal("15000.00"));
+
+        mockMvc.perform(put("/api/budgets/" + marchBudget.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.success").value(false));
+
+        // Confirm March budget was NOT changed
+        Budget unchanged = budgetRepository.findById(marchBudget.getId()).orElseThrow();
+        assertEquals(3, unchanged.getMonth());
+        assertEquals(0, new BigDecimal("10000.00").compareTo(unchanged.getAmount()));
+    }
+
+    @Test
+    @WithMockUser(username = "bob.budget@example.com")
+    @DisplayName("31. USER cannot edit another user's budget (404 Not Found, IDOR blocked)")
+    void testUpdateBudget_OtherUserBudget_ReturnsNotFound() throws Exception {
+        Budget aliceBudget = budgetRepository.save(new Budget(userAlice, 3, 2026, new BigDecimal("10000.00")));
+
+        BudgetRequest updateRequest = new BudgetRequest(3, 2026, new BigDecimal("50000.00"));
+
+        mockMvc.perform(put("/api/budgets/" + aliceBudget.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false));
+
+        Budget unchanged = budgetRepository.findById(aliceBudget.getId()).orElseThrow();
+        assertEquals(0, new BigDecimal("10000.00").compareTo(unchanged.getAmount()));
+    }
+
+    @Test
+    @DisplayName("32. Unauthenticated PUT is rejected (401 Unauthorized)")
+    void testUpdateBudget_Unauthenticated_ReturnsUnauthorized() throws Exception {
+        Budget budget = budgetRepository.save(new Budget(userAlice, 3, 2026, new BigDecimal("10000.00")));
+
+        BudgetRequest updateRequest = new BudgetRequest(3, 2026, new BigDecimal("15000.00"));
+
+        mockMvc.perform(put("/api/budgets/" + budget.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(username = "alice.budget@example.com")
+    @DisplayName("33. Invalid amount in PUT (zero or negative or null) is rejected (400 Bad Request)")
+    void testUpdateBudget_InvalidAmount_ReturnsBadRequest() throws Exception {
+        Budget budget = budgetRepository.save(new Budget(userAlice, 3, 2026, new BigDecimal("10000.00")));
+
+        BudgetRequest zeroRequest = new BudgetRequest(3, 2026, BigDecimal.ZERO);
+        mockMvc.perform(put("/api/budgets/" + budget.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(zeroRequest)))
+                .andExpect(status().isBadRequest());
+
+        BudgetRequest negativeRequest = new BudgetRequest(3, 2026, new BigDecimal("-100.00"));
+        mockMvc.perform(put("/api/budgets/" + budget.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(negativeRequest)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(username = "alice.budget@example.com")
+    @DisplayName("34. Updated remaining amount, utilization percentage, and status are recalculated correctly")
+    void testUpdateBudget_RecalculatesMetricsCorrectly() throws Exception {
+        Budget budget = budgetRepository.save(new Budget(userAlice, 3, 2026, new BigDecimal("10000.00")));
+        expenseRepository.save(new Expense(userAlice, categoryFood, new BigDecimal("12000.00"), LocalDate.of(2026, 3, 15), PaymentMethod.UPI, "Groceries"));
+
+        // Before update: 12000 / 10000 = 120%, OVER_BUDGET
+        mockMvc.perform(get("/api/budgets/" + budget.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.remainingAmount").value(-2000.00))
+                .andExpect(jsonPath("$.utilizationPercentage").value(120.00))
+                .andExpect(jsonPath("$.status").value("OVER_BUDGET"));
+
+        // Update amount to 20,000.00 -> 12,000 spent -> remaining 8,000, 60.00%, UNDER_BUDGET
+        BudgetRequest updateRequest = new BudgetRequest(3, 2026, new BigDecimal("20000.00"));
+        mockMvc.perform(put("/api/budgets/" + budget.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.budgetAmount").value(20000.00))
+                .andExpect(jsonPath("$.totalExpenses").value(12000.00))
+                .andExpect(jsonPath("$.remainingAmount").value(8000.00))
+                .andExpect(jsonPath("$.utilizationPercentage").value(60.00))
+                .andExpect(jsonPath("$.status").value("UNDER_BUDGET"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin@example.com", roles = {"ADMIN"})
+    @DisplayName("35. ADMIN cannot access or edit personal budget endpoint (403 Forbidden)")
+    void testUpdateBudget_AdminRole_Forbidden() throws Exception {
+        Budget aliceBudget = budgetRepository.save(new Budget(userAlice, 3, 2026, new BigDecimal("10000.00")));
+
+        BudgetRequest updateRequest = new BudgetRequest(3, 2026, new BigDecimal("20000.00"));
+
+        mockMvc.perform(put("/api/budgets/" + aliceBudget.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "alice.budget@example.com")
+    @DisplayName("36. Invalid month (<1 or >12) or year (<2000) in PUT is rejected (400 Bad Request)")
+    void testUpdateBudget_InvalidMonthYear_ReturnsBadRequest() throws Exception {
+        Budget budget = budgetRepository.save(new Budget(userAlice, 3, 2026, new BigDecimal("10000.00")));
+
+        BudgetRequest badMonthRequest = new BudgetRequest(13, 2026, new BigDecimal("15000.00"));
+        mockMvc.perform(put("/api/budgets/" + budget.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(badMonthRequest)))
+                .andExpect(status().isBadRequest());
+
+        BudgetRequest badYearRequest = new BudgetRequest(3, 1999, new BigDecimal("15000.00"));
+        mockMvc.perform(put("/api/budgets/" + budget.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(badYearRequest)))
                 .andExpect(status().isBadRequest());
     }
 }

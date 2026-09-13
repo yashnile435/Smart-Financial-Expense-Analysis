@@ -3,155 +3,498 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Financial Expense Analysis</title>
+    <title>Smart Financial Expense Analysis — Personal Finance &amp; Budget Management</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <!-- Custom CSS -->
+    <!-- Custom Theme CSS -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3 border-bottom border-secondary">
-        <div class="container">
-            <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="#">
-                <i class="bi bi-wallet2 text-primary fs-4"></i>
-                <span>Smart Financial Expense Analysis</span>
-            </a>
-            <div class="d-flex align-items-center gap-2">
-                <a href="expenses.html" class="btn btn-outline-light btn-sm rounded-pill px-3 fw-semibold">
-                    <i class="bi bi-cash-coin me-1"></i> Expenses
-                </a>
-                <a href="budgets.html" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold text-white border-primary">
-                    <i class="bi bi-pie-chart me-1"></i> Budgets
-                </a>
-                <span class="badge bg-primary-subtle text-primary border border-primary px-3 py-2 rounded-pill">
-                    Stage 5: Budget Management (Active)
+    <!-- Top Navigation Bar -->
+    <nav class="navbar navbar-expand-xl navbar-dark app-navbar py-3 sticky-top">
+        <div class="container-xl">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="index.html">
+                <span class="brand-icon">
+                    <i class="bi bi-wallet2"></i>
                 </span>
+                <span class="brand-text">Smart Financial Expense Analysis</span>
+            </a>
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navContent" aria-controls="navContent" aria-expanded="false" aria-label="Toggle navigation">
+                <i class="bi bi-list fs-2 text-white"></i>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navContent">
+                <!-- Public Nav Links -->
+                <ul class="navbar-nav align-items-xl-center gap-1 mb-3 mb-xl-0 me-xl-3">
+                    <li class="nav-item">
+                        <a class="nav-link app-nav-link active" href="#hero">
+                            <i class="bi bi-house me-1"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link app-nav-link" href="#about">
+                            <i class="bi bi-info-circle me-1"></i> About
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link app-nav-link" href="#features">
+                            <i class="bi bi-grid-fill me-1"></i> Features
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link app-nav-link" href="#how-it-works">
+                            <i class="bi bi-diagram-3 me-1"></i> How It Works
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Unauthenticated CTA (Visible when logged out) -->
+                <div id="unauthNav" class="d-flex align-items-center gap-2">
+                    <a href="dashboard.html" id="navGetStartedBtn" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> Get Started
+                    </a>
+                </div>
+
+                <!-- Authenticated Nav Menu (Visible when logged in) -->
+                <div id="authUserMenu" class="d-none align-items-center gap-2 flex-wrap mt-2 mt-xl-0">
+                    <a href="dashboard.html" class="app-nav-link">
+                        <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                    </a>
+                    <a href="expenses.html" class="app-nav-link">
+                        <i class="bi bi-receipt me-1"></i> Expenses
+                    </a>
+                    <a href="budgets.html" class="app-nav-link">
+                        <i class="bi bi-pie-chart me-1"></i> Budgets
+                    </a>
+                    <a href="reports.html" class="app-nav-link">
+                        <i class="bi bi-file-earmark-bar-graph me-1"></i> Reports
+                    </a>
+                    <a href="goals.html" class="app-nav-link">
+                        <i class="bi bi-bullseye me-1"></i> Goals
+                    </a>
+                    <a href="recurring-expenses.html" class="app-nav-link">
+                        <i class="bi bi-arrow-repeat me-1"></i> Recurring
+                    </a>
+                    <a href="admin.html" id="navAdminLink" class="app-nav-link nav-admin-item d-none">
+                        <i class="bi bi-shield-lock me-1"></i> Admin
+                    </a>
+                    <div class="user-pill d-flex align-items-center gap-2 px-3 py-1 rounded-pill">
+                        <i class="bi bi-person-circle"></i>
+                        <span id="currentUserName" class="fw-semibold small">User</span>
+                    </div>
+                    <button id="btnLogout" class="btn btn-sm btn-outline-danger rounded-pill px-3" aria-label="Logout">
+                        <i class="bi bi-box-arrow-right me-1"></i> Logout
+                    </button>
+                </div>
             </div>
         </div>
     </nav>
 
-    <main class="container my-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <!-- Main Welcome Card -->
-                <div class="card shadow-lg border-0 rounded-4 overflow-hidden mb-4">
-                    <div class="card-header bg-gradient-primary text-white p-4 text-center">
-                        <h1 class="h3 fw-bold mb-2">Smart Financial Expense Analysis</h1>
-                        <p class="lead mb-0 text-white-50">Deterministic, full-stack personal finance and expense tracking platform</p>
-                    </div>
-                    <div class="card-body p-4 p-md-5">
-                        <div class="alert alert-primary d-flex align-items-center mb-4 rounded-3" role="alert">
-                            <i class="bi bi-info-circle-fill fs-4 me-3 text-primary"></i>
-                            <div class="flex-grow-1">
-                                <h5 class="alert-heading mb-1 fw-semibold">Stage 5: Budget Management in progress.</h5>
-                                <p class="mb-2 text-secondary small">
-                                    Stages 1–4 (Project Setup, Database Entities, Authentication, and Expense Management) are completed. 
-                                    Active development is currently focused on Stage 5: Monthly Budgets, Spending Limits, and Utilization Tracking.
-                                </p>
-                                <div class="d-flex gap-2">
-                                    <a href="expenses.html" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold">
-                                        <i class="bi bi-wallet2 me-1"></i> Expenses
-                                    </a>
-                                    <a href="budgets.html" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold">
-                                        <i class="bi bi-pie-chart me-1"></i> Open Budget Management
-                                    </a>
-                                </div>
-                            </div>
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Section -->
+        <section id="hero" class="hero-section text-center">
+            <div class="container-xl">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10 col-xl-9">
+                        <div class="mb-3">
+                            <span class="hero-badge">
+                                <i class="bi bi-stars"></i> Personal Financial Intelligence Platform
+                            </span>
+                        </div>
+                        <h1 class="hero-title mb-3">
+                            Take Control of Your Finances
+                        </h1>
+                        <p class="hero-lead mb-4 mx-auto" style="max-width: 760px;">
+                            A secure, full-stack personal finance platform designed to track daily expenses, manage monthly budgets, set ambitious savings goals, automate recurring payments, and analyze spending habits with actionable insights.
+                        </p>
+                        <div class="d-flex justify-content-center gap-3 flex-wrap mb-4">
+                            <a href="dashboard.html" class="btn btn-primary rounded-pill px-4 py-3 fw-bold fs-6 shadow">
+                                <i class="bi bi-arrow-right-circle-fill me-2"></i> Get Started
+                            </a>
+                            <a href="#features" class="btn btn-outline-primary rounded-pill px-4 py-3 fw-semibold">
+                                <i class="bi bi-grid-fill me-2"></i> Explore Features
+                            </a>
+                        </div>
+                        <div class="d-flex justify-content-center align-items-center gap-4 text-muted small flex-wrap pt-2">
+                            <span><i class="bi bi-shield-check text-success me-1"></i> Session-Secured</span>
+                            <span><i class="bi bi-calculator text-primary me-1"></i> High-Precision BigDecimal</span>
+                            <span><i class="bi bi-graph-up-arrow text-info me-1"></i> Real-Time Analytics</span>
                         </div>
 
-                        <!-- Live Health Status Box -->
-                        <div class="health-card p-4 rounded-3 bg-light border mb-4">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <span class="fw-semibold text-uppercase text-muted small tracking-wide">
-                                    <i class="bi bi-activity me-1 text-primary"></i> Live Backend Health Check
+                        <!-- Hero SaaS Dashboard Mockup Preview Card -->
+                        <div class="hero-mockup-card">
+                            <div class="mockup-header">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="mockup-dots">
+                                        <span class="mockup-dot red"></span>
+                                        <span class="mockup-dot yellow"></span>
+                                        <span class="mockup-dot green"></span>
+                                    </div>
+                                    <span class="small fw-bold text-secondary font-monospace">Financial Overview &bull; Dashboard Live Preview</span>
+                                </div>
+                                <span class="badge badge-purple">
+                                    <i class="bi bi-circle-fill me-1 text-success" style="font-size: 0.5rem;"></i> Active Session
                                 </span>
-                                <button id="btnRefreshHealth" class="btn btn-sm btn-outline-primary rounded-pill">
-                                    <i class="bi bi-arrow-clockwise me-1"></i> Refresh
-                                </button>
                             </div>
 
-                            <div class="d-flex align-items-center gap-3 mb-2">
-                                <span id="statusIndicator" class="status-indicator status-checking"></span>
-                                <span id="statusText" class="fw-bold fs-5 text-secondary">Checking backend connection...</span>
+                            <!-- Mini Mockup Stats Grid -->
+                            <div class="row g-3 mb-3">
+                                <div class="col-sm-4">
+                                    <div class="p-3 bg-light rounded-3 border">
+                                        <div class="text-secondary small fw-semibold text-uppercase">Monthly Budget</div>
+                                        <div class="fs-5 fw-bold text-primary">₹25,000.00</div>
+                                        <div class="small text-muted">68% Utilized</div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="p-3 bg-light rounded-3 border">
+                                        <div class="text-secondary small fw-semibold text-uppercase">Current Month Spent</div>
+                                        <div class="fs-5 fw-bold text-danger">₹17,000.00</div>
+                                        <div class="small text-success">₹8,000.00 Remaining</div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="p-3 bg-light rounded-3 border">
+                                        <div class="text-secondary small fw-semibold text-uppercase">Emergency Savings</div>
+                                        <div class="fs-5 fw-bold text-success">₹42,500.00</div>
+                                        <div class="small text-primary">85% of ₹50,000 Goal</div>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div id="endpointDetail" class="small text-muted font-monospace mt-2 bg-white p-2 rounded border">
-                                GET <a href="/api/health" target="_blank" class="text-decoration-none">/api/health</a>
+                            <!-- Mockup Budget Bar -->
+                            <div class="mb-3 p-3 bg-light rounded-3 border">
+                                <div class="d-flex justify-content-between small fw-semibold mb-2">
+                                    <span>Monthly Spending Limit: ₹25,000.00</span>
+                                    <span class="text-primary fw-bold">68%</span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: 68%;" aria-valuenow="68" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
                             </div>
 
-                            <div id="healthResponseContainer" class="mt-3 d-none">
-                                <div class="text-muted small mb-1 fw-semibold">Server Response:</div>
-                                <pre id="healthResponse" class="p-3 bg-dark text-light rounded-3 small mb-0"></pre>
+                            <!-- Mockup Transactions Snippet -->
+                            <div class="p-2 bg-light rounded-3 border">
+                                <div class="d-flex justify-content-between align-items-center px-2 py-1 border-bottom border-white">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-primary-subtle text-primary"><i class="bi bi-laptop"></i> Utilities</span>
+                                        <span class="small fw-semibold">Cloud Infrastructure Hosting</span>
+                                    </div>
+                                    <span class="small fw-bold text-danger">-₹1,499.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center px-2 py-1 pt-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-primary-subtle text-primary"><i class="bi bi-cup-hot"></i> Food &amp; Dining</span>
+                                        <span class="small fw-semibold">Supermarket &amp; Pantry Supplies</span>
+                                    </div>
+                                    <span class="small fw-bold text-danger">-₹850.00</span>
+                                </div>
                             </div>
                         </div>
-
-                        <!-- Technical Stack Overview -->
-                        <h5 class="fw-bold mb-3">Technology Stack</h5>
-                        <div class="row g-3 text-center mb-4">
-                            <div class="col-6 col-md-3">
-                                <div class="p-3 border rounded-3 bg-white h-100 shadow-sm">
-                                    <i class="bi bi-filetype-java text-danger fs-3 mb-1 d-block"></i>
-                                    <div class="fw-bold">Java 21</div>
-                                    <small class="text-muted">Language</small>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="p-3 border rounded-3 bg-white h-100 shadow-sm">
-                                    <i class="bi bi-layers text-success fs-3 mb-1 d-block"></i>
-                                    <div class="fw-bold">Spring Boot 3</div>
-                                    <small class="text-muted">Web & JPA</small>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="p-3 border rounded-3 bg-white h-100 shadow-sm">
-                                    <i class="bi bi-database text-warning fs-3 mb-1 d-block"></i>
-                                    <div class="fw-bold">MySQL</div>
-                                    <small class="text-muted">Database</small>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="p-3 border rounded-3 bg-white h-100 shadow-sm">
-                                    <i class="bi bi-bootstrap text-primary fs-3 mb-1 d-block"></i>
-                                    <div class="fw-bold">Bootstrap 5</div>
-                                    <small class="text-muted">Frontend</small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Staged Roadmap Status -->
-                        <h5 class="fw-bold mb-3">Project Stages</h5>
-                        <ul id="projectStagesList" class="list-group list-group-flush border rounded-3 overflow-hidden">
-                            <li class="list-group-item d-flex justify-content-between align-items-center stage-item stage-completed bg-white">
-                                <span><i class="bi bi-check-circle-fill text-success me-2"></i>Stage 1: Project Setup (Java + Spring Boot + Maven + MySQL)</span>
-                                <span class="badge bg-success">Completed</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center stage-item stage-completed bg-white">
-                                <span><i class="bi bi-check-circle-fill text-success me-2"></i>Stage 2: Database & Entities</span>
-                                <span class="badge bg-success">Completed</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center stage-item stage-completed bg-white">
-                                <span><i class="bi bi-check-circle-fill text-success me-2"></i>Stage 3: Authentication (Registration, Login, Roles)</span>
-                                <span class="badge bg-success">Completed</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center stage-item stage-active bg-primary-subtle text-primary-emphasis fw-semibold">
-                                <span><i class="bi bi-record-circle-fill text-primary me-2"></i>Stage 4: Expense Management (CRUD, Search, Filter)</span>
-                                <span class="badge bg-primary">Active</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center stage-item stage-upcoming text-muted bg-light-subtle">
-                                <span><i class="bi bi-clock me-2"></i>Stages 5-10: Budgets, Analytics, Dashboard, UI & Testing</span>
-                                <span class="badge bg-secondary">Upcoming</span>
-                            </li>
-                        </ul>
                     </div>
-                    <div class="card-footer bg-light text-center py-3 text-muted small">
-                        Smart Financial Expense Analysis &copy; 2026 &bull; Stage 4: Expense Management
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="py-5 bg-white">
+            <div class="container-xl py-4">
+                <div class="row justify-content-center">
+                    <div class="col-lg-11">
+                        <div class="about-card">
+                            <div class="row align-items-center g-4">
+                                <div class="col-md-7">
+                                    <span class="text-uppercase small fw-bold text-primary tracking-wide mb-2 d-block">
+                                        About the Project
+                                    </span>
+                                    <h2 class="h3 fw-bold mb-3">
+                                        Deterministic, Full-Stack Financial Engineering
+                                    </h2>
+                                    <p class="text-secondary mb-3">
+                                        Smart Financial Expense Analysis is a full-stack personal finance management platform designed to help users record expenses, manage monthly budgets, monitor spending patterns, set savings goals, manage recurring expenses, and generate financial reports from a single dashboard.
+                                    </p>
+                                    <p class="text-secondary mb-0">
+                                        Engineered with strict multi-tenant isolation, high-precision BigDecimal monetary arithmetic, role-based authorization, and automated recurring payment generation, providing an academic and production-grade financial management solution.
+                                    </p>
+                                </div>
+                                <div class="col-md-5">
+                                    <div class="p-3 bg-light rounded-4 border">
+                                        <div class="d-flex align-items-center gap-3 mb-3">
+                                            <div class="stat-icon primary" style="width: 2.75rem; height: 2.75rem; font-size: 1.3rem;">
+                                                <i class="bi bi-shield-lock-fill"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold small text-primary">BCrypt &amp; Session Security</div>
+                                                <div class="text-muted small">Protected user authentication</div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-3 mb-3">
+                                            <div class="stat-icon success" style="width: 2.75rem; height: 2.75rem; font-size: 1.3rem;">
+                                                <i class="bi bi-cash-stack"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold small text-success">Exact Monetary Math</div>
+                                                <div class="text-muted small">BigDecimal half-up rounding</div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="stat-icon warning" style="width: 2.75rem; height: 2.75rem; font-size: 1.3rem;">
+                                                <i class="bi bi-filetype-pdf"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold small text-warning">Multi-Format Export</div>
+                                                <div class="text-muted small">Instant PDF &amp; CSV reporting</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="py-5" style="background-color: var(--bg-main);">
+            <div class="container-xl py-4">
+                <div class="text-center mb-5">
+                    <span class="text-uppercase small fw-bold text-primary tracking-wide d-block mb-1">
+                        Comprehensive Capabilities
+                    </span>
+                    <h2 class="h3 fw-bold mb-2">Platform Features</h2>
+                    <p class="text-secondary mx-auto" style="max-width: 600px;">
+                        Everything you need to manage your personal finances with clarity, discipline, and security.
+                    </p>
+                </div>
+
+                <div class="row g-4">
+                    <!-- Feature 1 -->
+                    <div class="col-md-6 col-lg-3">
+                        <div class="feature-card">
+                            <div class="feature-icon-wrapper">
+                                <i class="bi bi-wallet2"></i>
+                            </div>
+                            <h3 class="h5 fw-bold mb-2">Expense Tracking</h3>
+                            <p class="text-secondary small mb-0">
+                                Record, categorize, and filter transactions across dates, payment methods, and amount ranges with zero data leakage.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Feature 2 -->
+                    <div class="col-md-6 col-lg-3">
+                        <div class="feature-card">
+                            <div class="feature-icon-wrapper">
+                                <i class="bi bi-pie-chart-fill"></i>
+                            </div>
+                            <h3 class="h5 fw-bold mb-2">Budget Management</h3>
+                            <p class="text-secondary small mb-0">
+                                Set monthly spending ceilings and monitor real-time utilization with automated warning thresholds and alerts.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Feature 3 -->
+                    <div class="col-md-6 col-lg-3">
+                        <div class="feature-card">
+                            <div class="feature-icon-wrapper">
+                                <i class="bi bi-speedometer2"></i>
+                            </div>
+                            <h3 class="h5 fw-bold mb-2">Financial Dashboard</h3>
+                            <p class="text-secondary small mb-0">
+                                Unified overview displaying KPI cards, active budget status, recent transactions, and actionable financial insights.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Feature 4 -->
+                    <div class="col-md-6 col-lg-3">
+                        <div class="feature-card">
+                            <div class="feature-icon-wrapper">
+                                <i class="bi bi-bar-chart-line-fill"></i>
+                            </div>
+                            <h3 class="h5 fw-bold mb-2">Spending Analytics</h3>
+                            <p class="text-secondary small mb-0">
+                                Visual breakdown charts for category distributions, payment methods, and continuous 6-month historical expenditure trends.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Feature 5 -->
+                    <div class="col-md-6 col-lg-3">
+                        <div class="feature-card">
+                            <div class="feature-icon-wrapper">
+                                <i class="bi bi-bullseye"></i>
+                            </div>
+                            <h3 class="h5 fw-bold mb-2">Savings Goals</h3>
+                            <p class="text-secondary small mb-0">
+                                Define target savings balances with target deadlines, track progress percentage, and log incremental contributions.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Feature 6 -->
+                    <div class="col-md-6 col-lg-3">
+                        <div class="feature-card">
+                            <div class="feature-icon-wrapper">
+                                <i class="bi bi-arrow-repeat"></i>
+                            </div>
+                            <h3 class="h5 fw-bold mb-2">Recurring Expenses</h3>
+                            <p class="text-secondary small mb-0">
+                                Automate periodic subscriptions and bills across daily, weekly, monthly, and yearly cycles with scheduled generation.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Feature 7 -->
+                    <div class="col-md-6 col-lg-3">
+                        <div class="feature-card">
+                            <div class="feature-icon-wrapper">
+                                <i class="bi bi-file-earmark-bar-graph-fill"></i>
+                            </div>
+                            <h3 class="h5 fw-bold mb-2">Financial Reports</h3>
+                            <p class="text-secondary small mb-0">
+                                Generate comprehensive monthly or custom date-range statements with 1-click download in CSV and PDF formats.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Feature 8 -->
+                    <div class="col-md-6 col-lg-3">
+                        <div class="feature-card">
+                            <div class="feature-icon-wrapper">
+                                <i class="bi bi-shield-check"></i>
+                            </div>
+                            <h3 class="h5 fw-bold mb-2">Secure Accounts</h3>
+                            <p class="text-secondary small mb-0">
+                                Enterprise-grade authentication with BCrypt password hashing, session management, and role-based administration.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works Section -->
+        <section id="how-it-works" class="py-5 bg-white">
+            <div class="container-xl py-4">
+                <div class="text-center mb-5">
+                    <span class="text-uppercase small fw-bold text-primary tracking-wide d-block mb-1">
+                        Simple Workflow
+                    </span>
+                    <h2 class="h3 fw-bold mb-2">How It Works</h2>
+                    <p class="text-secondary mx-auto" style="max-width: 500px;">
+                        Start managing your personal finances in three straightforward steps.
+                    </p>
+                </div>
+
+                <div class="row g-4 justify-content-center">
+                    <div class="col-md-4">
+                        <div class="step-card">
+                            <div class="step-badge">1</div>
+                            <h3 class="h5 fw-bold mb-2">Login / Register</h3>
+                            <p class="text-secondary small mb-0">
+                                Create your personal account or log in with your credentials to establish a secure, isolated session.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="step-card">
+                            <div class="step-badge">2</div>
+                            <h3 class="h5 fw-bold mb-2">Track &amp; Manage Finances</h3>
+                            <p class="text-secondary small mb-0">
+                                Log your daily expenses, configure monthly budgets, schedule recurring bills, and set savings goals.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="step-card">
+                            <div class="step-badge">3</div>
+                            <h3 class="h5 fw-bold mb-2">Analyze &amp; Improve</h3>
+                            <p class="text-secondary small mb-0">
+                                Review financial charts, track budget warning alerts, download reports, and make informed financial decisions.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Call to Action Section -->
+        <section class="py-5" style="background-color: var(--bg-main);">
+            <div class="container-xl py-4">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10">
+                        <div class="cta-section">
+                            <h2 class="h3 fw-bold mb-3">Start Managing Your Finances Today</h2>
+                            <p class="lead mb-4 mx-auto" style="max-width: 600px;">
+                                Sign in to your dashboard to track expenses, set budget alerts, and manage your financial future with confidence.
+                            </p>
+                            <a href="dashboard.html" class="btn btn-light-purple btn-lg rounded-pill px-5 py-3 shadow">
+                                <i class="bi bi-box-arrow-in-right me-2"></i> Get Started
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Live Backend Health Check Box (Compact) -->
+        <section class="py-4 bg-white border-top">
+            <div class="container-xl">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="d-flex justify-content-between align-items-center p-3 rounded-3 bg-light border">
+                            <div class="d-flex align-items-center gap-3">
+                                <span id="statusIndicator" class="status-indicator status-checking"></span>
+                                <div>
+                                    <div id="statusText" class="fw-semibold small text-secondary">Checking backend connection...</div>
+                                    <div class="font-monospace text-muted" style="font-size: 0.75rem;">GET /api/health</div>
+                                </div>
+                            </div>
+                            <button id="btnRefreshHealth" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer-section">
+        <div class="container-xl">
+            <div class="row g-4 align-items-center">
+                <div class="col-md-6 text-center text-md-start">
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-2 mb-2">
+                        <span class="brand-icon" style="width: 1.8rem; height: 1.8rem; font-size: 0.95rem;">
+                            <i class="bi bi-wallet2"></i>
+                        </span>
+                        <span class="fw-bold text-white">Smart Financial Expense Analysis</span>
+                    </div>
+                    <p class="mb-0 text-white-50 small" style="max-width: 440px;">
+                        A full-stack, session-authenticated personal financial analytics platform engineered with Java, Spring Boot, MySQL, and Bootstrap 5.
+                    </p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <div class="d-flex justify-content-center justify-content-md-end gap-3 flex-wrap small">
+                        <a href="#hero">Home</a>
+                        <a href="#about">About</a>
+                        <a href="#features">Features</a>
+                        <a href="#how-it-works">How It Works</a>
+                        <a href="dashboard.html">Login</a>
+                    </div>
+                    <div class="text-white-50 small mt-2">
+                        &copy; 2026 Smart Financial Expense Analysis &bull; All Rights Reserved
                     </div>
                 </div>
             </div>
         </div>
-    </main>
+    </footer>
 
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

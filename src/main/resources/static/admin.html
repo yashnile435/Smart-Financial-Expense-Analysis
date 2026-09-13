@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Management - Smart Financial Expense Analysis</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Top Navbar -->
+    <nav class="navbar navbar-expand-xl navbar-dark app-navbar py-3 sticky-top">
+        <div class="container-xl">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="index.html">
+                <span class="brand-icon">
+                    <i class="bi bi-wallet2"></i>
+                </span>
+                <span class="brand-text">Smart Financial Expense Analysis</span>
+            </a>
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navContent" aria-controls="navContent" aria-expanded="false" aria-label="Toggle navigation">
+                <i class="bi bi-list fs-2 text-white"></i>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navContent">
+                <ul class="navbar-nav mx-auto mb-2 mb-xl-0 gap-1">
+                    <li class="nav-item">
+                        <a class="nav-link app-nav-link nav-admin-item active" id="navAdminLink" href="admin.html">
+                            <i class="bi bi-shield-lock me-1"></i> Admin Management Console
+                        </a>
+                    </li>
+                </ul>
+                <div id="authUserMenu" class="d-none align-items-center gap-2 mt-2 mt-xl-0">
+                    <div class="user-pill d-flex align-items-center gap-2 px-3 py-1 rounded-pill">
+                        <i class="bi bi-shield-check text-warning"></i>
+                        <span id="currentUserName" class="fw-semibold small">Admin</span>
+                    </div>
+                    <button id="btnLogout" class="btn btn-outline-danger btn-sm rounded-pill px-3" aria-label="Logout">
+                        <i class="bi bi-box-arrow-right me-1"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="container-xl my-4">
+        <!-- Toast Notification Container -->
+        <div class="position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+            <div id="actionToast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body" id="toastMessage">Notification message</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 1. Unauthenticated Alert Section -->
+        <div id="authRequiredSection" class="card shadow-sm border-0 rounded-4 p-5 text-center my-5 d-none">
+            <div class="stat-icon warning mx-auto mb-3" style="width: 4rem; height: 4rem; font-size: 2rem;">
+                <i class="bi bi-lock-fill"></i>
+            </div>
+            <h3 class="fw-bold">Authentication Required</h3>
+            <p class="text-secondary mb-4">Please log in with an administrator account to access this management dashboard.</p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="dashboard.html" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Go to Login
+                </a>
+                <a href="index.html" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Home
+                </a>
+            </div>
+        </div>
+
+        <!-- 2. Access Denied (Non-Admin User) Section -->
+        <div id="accessDeniedSection" class="card shadow-sm border-0 rounded-4 p-5 text-center my-5 d-none">
+            <div class="stat-icon danger mx-auto mb-3" style="width: 4rem; height: 4rem; font-size: 2rem;">
+                <i class="bi bi-shield-x"></i>
+            </div>
+            <h3 class="fw-bold text-danger">Access Denied</h3>
+            <p class="text-secondary fs-5 mb-4">Access denied. Administrator privileges are required.</p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="dashboard.html" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold">
+                    <i class="bi bi-speedometer2 me-1"></i> Go to User Dashboard
+                </a>
+                <a href="index.html" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold">
+                    <i class="bi bi-house me-1"></i> Home
+                </a>
+            </div>
+        </div>
+
+        <!-- 3. Admin Main Content Section -->
+        <div id="adminMainSection" class="d-none">
+            <!-- Header Banner -->
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                <div>
+                    <h2 class="fw-bold text-primary mb-1 d-flex align-items-center gap-2">
+                        <i class="bi bi-shield-lock-fill"></i> Admin Management Dashboard
+                    </h2>
+                    <p class="text-secondary mb-0">System-wide administration, user management, category controls, and aggregate financial metrics.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button id="btnRefreshAll" class="btn btn-light-purple rounded-pill px-3 fw-semibold">
+                        <i class="bi bi-arrow-clockwise me-1"></i> Refresh Data
+                    </button>
+                </div>
+            </div>
+
+            <!-- System Overview Stat Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Users</div>
+                        <h3 class="stat-value text-primary mb-0" id="statTotalUsers">0</h3>
+                        <small class="text-muted" id="statActiveUsers">Active: 0</small>
+                    </div>
+                </div>
+
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Expenses</div>
+                        <h3 class="stat-value text-dark mb-0" id="statTotalExpenses">0</h3>
+                        <small class="text-muted" id="statCurrentMonthAmount">This Month: INR 0.00</small>
+                    </div>
+                </div>
+
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="stat-label">Aggregate Spend</div>
+                        <h4 class="stat-value text-dark mb-0" id="statTotalExpenseAmount">INR 0.00</h4>
+                        <small class="text-muted" id="statAvgExpense">Avg: INR 0.00</small>
+                    </div>
+                </div>
+
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Budgets</div>
+                        <h3 class="stat-value text-dark mb-0" id="statTotalBudgets">0</h3>
+                        <small class="text-muted" id="statTotalBudgetAmount">Allocated: INR 0.00</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs for Admin Modules -->
+            <ul class="nav nav-pills mb-4 gap-2 border-bottom pb-3" id="adminTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active rounded-pill fw-semibold" id="tabUsersBtn" data-bs-toggle="pill" data-bs-target="#tabUsers" type="button" role="tab">
+                        <i class="bi bi-people me-1"></i> User Management
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link rounded-pill fw-semibold" id="tabCategoriesBtn" data-bs-toggle="pill" data-bs-target="#tabCategories" type="button" role="tab">
+                        <i class="bi bi-tags me-1"></i> Categories
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link rounded-pill fw-semibold" id="tabPaymentOptionsBtn" data-bs-toggle="pill" data-bs-target="#tabPaymentOptions" type="button" role="tab">
+                        <i class="bi bi-credit-card me-1"></i> Payment Options
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link rounded-pill fw-semibold" id="tabFinancialBtn" data-bs-toggle="pill" data-bs-target="#tabFinancial" type="button" role="tab">
+                        <i class="bi bi-graph-up me-1"></i> Analytics
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link rounded-pill fw-semibold" id="tabBudgetsBtn" data-bs-toggle="pill" data-bs-target="#tabBudgets" type="button" role="tab">
+                        <i class="bi bi-wallet me-1"></i> Budgets
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab Contents -->
+            <div class="tab-content" id="adminTabContent">
+                <!-- TAB 1: User Management -->
+                <div class="tab-pane fade show active" id="tabUsers" role="tabpanel">
+                    <div class="card shadow-sm border-0 rounded-4 p-4 mb-4">
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                            <h4 class="fw-bold mb-0 text-dark">User Management</h4>
+                            <div class="d-flex gap-2">
+                                <div class="input-group" style="max-width: 320px;">
+                                    <input type="text" id="userSearchInput" class="form-control" placeholder="Search by name or email...">
+                                    <button id="btnSearchUsers" class="btn btn-outline-primary" type="button" aria-label="Search users">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                    <button id="btnResetSearch" class="btn btn-outline-secondary" type="button" title="Clear search" aria-label="Clear search">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 80px;" class="ps-3">ID</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th style="width: 120px;">Role</th>
+                                        <th style="width: 120px;">Status</th>
+                                        <th style="width: 220px;" class="text-end pe-3">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="userTableBody">
+                                    <tr>
+                                        <td colspan="6" class="text-center py-4 text-muted">Loading users...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: Category Management -->
+                <div class="tab-pane fade" id="tabCategories" role="tabpanel">
+                    <div class="card shadow-sm border-0 rounded-4 p-4 mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h4 class="fw-bold mb-0 text-dark">Category Management</h4>
+                                <p class="text-secondary small mb-0">Manage system expense categories. Categories in active use cannot be deleted.</p>
+                            </div>
+                            <button class="btn btn-primary rounded-pill px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                                <i class="bi bi-plus-lg me-1"></i> Add Category
+                            </button>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 80px;" class="ps-3">ID</th>
+                                        <th>Category Name</th>
+                                        <th>Description</th>
+                                        <th style="width: 180px;" class="text-end pe-3">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="categoryTableBody">
+                                    <tr>
+                                        <td colspan="4" class="text-center py-4 text-muted">Loading categories...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: Payment Options Master Data -->
+                <div class="tab-pane fade" id="tabPaymentOptions" role="tabpanel">
+                    <div class="card shadow-sm border-0 rounded-4 p-4 mb-4">
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                            <div>
+                                <h4 class="fw-bold mb-0 text-dark">Payment Options Master Data</h4>
+                                <p class="text-secondary small mb-0">Manage system-wide payment options, activation status, and channel descriptions.</p>
+                            </div>
+                            <button class="btn btn-primary rounded-pill px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#addPaymentOptionModal">
+                                <i class="bi bi-plus-lg me-1"></i> Add Payment Option
+                            </button>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 80px;" class="ps-3">ID</th>
+                                        <th>Option Name</th>
+                                        <th>Description</th>
+                                        <th style="width: 130px;">Status</th>
+                                        <th style="width: 220px;" class="text-end pe-3">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="paymentOptionsTableBody">
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4 text-muted">
+                                            <div class="spinner-border spinner-border-sm text-primary me-2"></div> Loading payment options...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 4: Financial Overview & Analytics -->
+                <div class="tab-pane fade" id="tabFinancial" role="tabpanel">
+                    <!-- Expense Metrics Summary Cards -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <div class="stat-label">Average Expense</div>
+                                <h4 class="stat-value text-dark mt-1 mb-0" id="finAvgExpense">INR 0.00</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <div class="stat-label">Highest Single Expense</div>
+                                <h4 class="stat-value text-danger mt-1 mb-0" id="finMaxExpense">INR 0.00</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <div class="stat-label">Current Month Spend</div>
+                                <h4 class="stat-value text-primary mt-1 mb-0" id="finCurrentMonth">INR 0.00</h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        <!-- Category Analytics Table -->
+                        <div class="col-lg-6">
+                            <div class="card shadow-sm border-0 rounded-4 p-4 h-100">
+                                <h5 class="fw-bold mb-3"><i class="bi bi-tags-fill text-primary me-2"></i> Category Spending Distribution</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th class="ps-3">Category</th>
+                                                <th class="text-end">Amount</th>
+                                                <th class="text-center">Count</th>
+                                                <th class="text-end pe-3" style="width: 120px;">Share</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="categoryAnalyticsBody">
+                                            <tr><td colspan="4" class="text-center py-3 text-muted">Loading...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Method Analytics Table -->
+                        <div class="col-lg-6">
+                            <div class="card shadow-sm border-0 rounded-4 p-4 h-100">
+                                <h5 class="fw-bold mb-3"><i class="bi bi-credit-card-2-front-fill text-info me-2"></i> Payment Method Distribution</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th class="ps-3">Payment Method</th>
+                                                <th class="text-end">Amount</th>
+                                                <th class="text-center">Count</th>
+                                                <th class="text-end pe-3" style="width: 120px;">Share</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="paymentMethodAnalyticsBody">
+                                            <tr><td colspan="4" class="text-center py-3 text-muted">Loading...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 6-Month Monthly Trend -->
+                    <div class="card shadow-sm border-0 rounded-4 p-4">
+                        <h5 class="fw-bold mb-3"><i class="bi bi-calendar3 text-success me-2"></i> 6-Month System Expense History</h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-3">Month / Year</th>
+                                        <th class="text-end">Total Expenses</th>
+                                        <th class="text-center pe-3">Transaction Count</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="monthlyAnalyticsBody">
+                                    <tr><td colspan="3" class="text-center py-3 text-muted">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 4: Budget Overview -->
+                <div class="tab-pane fade" id="tabBudgets" role="tabpanel">
+                    <div class="card shadow-sm border-0 rounded-4 p-4 mb-4">
+                        <h4 class="fw-bold mb-3 text-dark">System Budget Health Overview</h4>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <div class="card border-0 rounded-4 p-3 bg-success-subtle border border-success">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <div class="text-success small fw-semibold text-uppercase">Under Budget (&lt;80%)</div>
+                                            <h3 class="fw-bold text-success mb-0" id="budgetUnderCount">0</h3>
+                                        </div>
+                                        <i class="bi bi-check-circle-fill text-success fs-1"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card border-0 rounded-4 p-3 bg-warning-subtle border border-warning">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <div class="text-warning-emphasis small fw-semibold text-uppercase">Near Limit (80–100%)</div>
+                                            <h3 class="fw-bold text-warning-emphasis mb-0" id="budgetNearCount">0</h3>
+                                        </div>
+                                        <i class="bi bi-exclamation-triangle-fill text-warning fs-1"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card border-0 rounded-4 p-3 bg-danger-subtle border border-danger">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <div class="text-danger small fw-semibold text-uppercase">Over Budget (&gt;100%)</div>
+                                            <h3 class="fw-bold text-danger mb-0" id="budgetOverCount">0</h3>
+                                        </div>
+                                        <i class="bi bi-x-octagon-fill text-danger fs-1"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <div class="p-3 bg-light rounded-3 border">
+                                    <span class="text-secondary small">Total Budgets Configured:</span>
+                                    <h5 class="fw-bold mt-1 mb-0" id="budgetTotalConfigured">0</h5>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="p-3 bg-light rounded-3 border">
+                                    <span class="text-secondary small">Average Budget Target:</span>
+                                    <h5 class="fw-bold mt-1 mb-0" id="budgetAverageTarget">INR 0.00</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+
+    <!-- Add Category Modal -->
+    <div class="modal fade" id="addCategoryModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-gradient-primary text-white">
+                    <h5 class="modal-title fw-bold">Add New Category</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="addCategoryForm">
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label for="newCategoryName" class="form-label">Category Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="newCategoryName" maxlength="100" required placeholder="e.g., Subscriptions">
+                        </div>
+                        <div class="mb-3">
+                            <label for="newCategoryDesc" class="form-label">Description</label>
+                            <textarea class="form-control" id="newCategoryDesc" rows="2" maxlength="255" placeholder="Optional category description..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top-0 pt-0 p-4">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold">Save Category</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Category Modal -->
+    <div class="modal fade" id="editCategoryModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-gradient-primary text-white">
+                    <h5 class="modal-title fw-bold">Edit Category</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="editCategoryForm">
+                    <input type="hidden" id="editCategoryId">
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label for="editCategoryName" class="form-label">Category Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="editCategoryName" maxlength="100" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editCategoryDesc" class="form-label">Description</label>
+                            <textarea class="form-control" id="editCategoryDesc" rows="2" maxlength="255"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top-0 pt-0 p-4">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold">Update Category</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Payment Option Modal -->
+    <div class="modal fade" id="addPaymentOptionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow rounded-4">
+                <div class="modal-header bg-gradient-primary text-white">
+                    <h5 class="modal-title fw-bold">Add Payment Option</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="addPaymentOptionForm">
+                    <div class="modal-body p-4">
+                        <div id="addPaymentOptionAlert" class="alert alert-danger small d-none"></div>
+                        <div class="mb-3">
+                            <label for="newPaymentOptionName" class="form-label small fw-semibold">Payment Option Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="newPaymentOptionName" maxlength="100" required placeholder="e.g. Digital Wallet, Net Banking">
+                        </div>
+                        <div class="mb-3">
+                            <label for="newPaymentOptionDesc" class="form-label small fw-semibold">Description</label>
+                            <textarea class="form-control" id="newPaymentOptionDesc" rows="2" maxlength="255" placeholder="Optional details..."></textarea>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="newPaymentOptionActive" checked>
+                            <label class="form-check-label small fw-semibold" for="newPaymentOptionActive">Active (available for transactions)</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top-0 pt-0 p-4">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" id="btnSavePaymentOption" class="btn btn-primary rounded-pill px-4 fw-semibold">Save Option</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Payment Option Modal -->
+    <div class="modal fade" id="editPaymentOptionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow rounded-4">
+                <div class="modal-header bg-gradient-primary text-white">
+                    <h5 class="modal-title fw-bold">Edit Payment Option</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="editPaymentOptionForm">
+                    <input type="hidden" id="editPaymentOptionId">
+                    <div class="modal-body p-4">
+                        <div id="editPaymentOptionAlert" class="alert alert-danger small d-none"></div>
+                        <div class="mb-3">
+                            <label for="editPaymentOptionName" class="form-label small fw-semibold">Payment Option Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="editPaymentOptionName" maxlength="100" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editPaymentOptionDesc" class="form-label small fw-semibold">Description</label>
+                            <textarea class="form-control" id="editPaymentOptionDesc" rows="2" maxlength="255"></textarea>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="editPaymentOptionActive">
+                            <label class="form-check-label small fw-semibold" for="editPaymentOptionActive">Active</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top-0 pt-0 p-4">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" id="btnUpdatePaymentOption" class="btn btn-primary rounded-pill px-4 fw-semibold">Update Option</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom Admin JS -->
+    <script src="js/admin.js"></script>
+</body>
+</html>

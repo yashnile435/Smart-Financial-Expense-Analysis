@@ -66,4 +66,10 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
      * @return List of budgets ordered with most recent first
      */
     List<Budget> findByUserIdOrderByYearDescMonthDesc(Long userId);
+
+    /**
+     * Calculate total system-wide budget amount.
+     */
+    @org.springframework.data.jpa.repository.Query("SELECT COALESCE(SUM(b.amount), 0) FROM Budget b")
+    java.math.BigDecimal sumAllAmount();
 }

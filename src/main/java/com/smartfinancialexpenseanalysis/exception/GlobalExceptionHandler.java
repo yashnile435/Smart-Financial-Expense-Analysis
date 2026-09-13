@@ -1,6 +1,8 @@
 package com.smartfinancialexpenseanalysis.exception;
 
 import com.smartfinancialexpenseanalysis.dto.ApiResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +18,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     /**
      * Handles validation errors from @Valid annotated request bodies.
@@ -38,6 +42,15 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse> handleBadCredentials(BadCredentialsException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(new ApiResponse(false, ex.getMessage()));
+    }
+
+    /**
+     * Handles authentication attempts on disabled accounts.
+     */
+    @ExceptionHandler(org.springframework.security.authentication.DisabledException.class)
+    public ResponseEntity<ApiResponse> handleDisabledAccount(org.springframework.security.authentication.DisabledException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ApiResponse(false, "Account is disabled. Please contact an administrator."));
     }
 
     /**
@@ -117,10 +130,20 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles missing routes/static resources by returning 404.
+     */
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse> handleNoResourceFound(org.springframework.web.servlet.resource.NoResourceFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ApiResponse(false, "Resource not found: " + ex.getResourcePath()));
+    }
+
+    /**
      * Catches any unhandled generic exceptions to avoid exposing internal details.
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse> handleGenericException(Exception ex) {
+        log.error("Unhandled exception: ", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ApiResponse(false, "An unexpected error occurred. Please try again later."));
     }

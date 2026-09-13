@@ -141,4 +141,22 @@ public class BudgetController {
         ApiResponse response = budgetService.deleteBudget(id, authentication.getName());
         return ResponseEntity.ok(response);
     }
+
+    /**
+     * Retrieves deterministic budget warning alerts for the authenticated user.
+     *
+     * @param month          optional month
+     * @param year           optional year
+     * @param authentication current security authentication
+     * @return 200 OK with list of BudgetAlertResponse DTOs
+     */
+    @GetMapping("/alerts")
+    public ResponseEntity<List<com.smartfinancialexpenseanalysis.dto.BudgetAlertResponse>> getBudgetAlerts(
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year,
+            Authentication authentication) {
+        List<com.smartfinancialexpenseanalysis.dto.BudgetAlertResponse> alerts =
+                budgetService.getBudgetAlerts(month, year, authentication.getName());
+        return ResponseEntity.ok(alerts);
+    }
 }

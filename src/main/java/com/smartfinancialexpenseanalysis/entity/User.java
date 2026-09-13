@@ -50,6 +50,9 @@ public class User {
     @Column(nullable = false, length = 20)
     private Role role;
 
+    @Column(nullable = false)
+    private boolean enabled = true;
+
     public User() {
     }
 
@@ -58,6 +61,15 @@ public class User {
         this.email = email;
         this.password = password;
         this.role = role;
+        this.enabled = true;
+    }
+
+    public User(String name, String email, String password, Role role, boolean enabled) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.role = role;
+        this.enabled = enabled;
     }
 
     public User(Long id, String name, String email, String password, Role role) {
@@ -66,6 +78,16 @@ public class User {
         this.email = email;
         this.password = password;
         this.role = role;
+        this.enabled = true;
+    }
+
+    public User(Long id, String name, String email, String password, Role role, boolean enabled) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.role = role;
+        this.enabled = enabled;
     }
 
     public Long getId() {
@@ -108,6 +130,14 @@ public class User {
         this.role = role;
     }
 
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -128,6 +158,7 @@ public class User {
                 ", name='" + name + '\'' +
                 ", email='" + email + '\'' +
                 ", role=" + role +
+                ", enabled=" + enabled +
                 '}';
     }
 }

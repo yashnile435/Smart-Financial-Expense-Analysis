@@ -15,7 +15,7 @@ To run type
 6. Run .\mvnw.cmd spring-boot:run
         ↓
 7. Open localhost
-
+http://localhost:8080/
 
 Development approach
 

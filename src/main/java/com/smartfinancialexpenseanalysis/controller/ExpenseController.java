@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -59,6 +60,8 @@ public class ExpenseController {
      * @param paymentMethod  optional payment method filter
      * @param startDate      optional start date filter (ISO format)
      * @param endDate        optional end date filter (ISO format)
+     * @param minAmount      optional minimum amount filter
+     * @param maxAmount      optional maximum amount filter
      * @param page           optional page index
      * @param size           optional page size
      * @param authentication current security authentication
@@ -71,11 +74,13 @@ public class ExpenseController {
             @RequestParam(required = false) PaymentMethod paymentMethod,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) BigDecimal minAmount,
+            @RequestParam(required = false) BigDecimal maxAmount,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size,
             Authentication authentication) {
         List<ExpenseResponse> responses = expenseService.getExpenses(
-                authentication.getName(), search, categoryId, paymentMethod, startDate, endDate, page, size);
+                authentication.getName(), search, categoryId, paymentMethod, startDate, endDate, minAmount, maxAmount, page, size);
         return ResponseEntity.ok(responses);
     }
 

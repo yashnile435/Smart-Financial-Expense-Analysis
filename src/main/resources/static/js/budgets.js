@@ -7,6 +7,9 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentUser = null;
     let allBudgets = [];
     let budgetIdToDelete = null;
+    let editingBudgetId = null;
+    let currentMonthBudgetId = null;
+    let currentViewedBudgetId = null;
 
     const MONTH_NAMES = [
         "", "January", "February", "March", "April", "May", "June",
@@ -53,6 +56,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const formAlert = document.getElementById("formAlert");
     const btnResetForm = document.getElementById("btnResetForm");
     const btnCancelEdit = document.getElementById("btnCancelEdit");
+    const btnSaveBudget = document.getElementById("btnSaveBudget");
+    const btnEditCurrentBudget = document.getElementById("btnEditCurrentBudget");
 
     // Table & History Elements
     const budgetTableBody = document.getElementById("budgetTableBody");
@@ -71,6 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const viewModalUtilization = document.getElementById("viewModalUtilization");
     const viewModalBarLabel = document.getElementById("viewModalBarLabel");
     const viewModalProgressBar = document.getElementById("viewModalProgressBar");
+    const btnEditModalBudget = document.getElementById("btnEditModalBudget");
 
     // Delete Modal Elements
     const deleteBudgetModalEl = document.getElementById("deleteBudgetModal");
@@ -114,11 +120,20 @@ document.addEventListener("DOMContentLoaded", () => {
             const res = await fetch("/api/auth/me");
             if (res.ok) {
                 currentUser = await res.json();
+                if (currentUser.role === "ADMIN") {
+                    window.location.href = "admin.html";
+                    return;
+                }
                 currentUserName.textContent = currentUser.name || currentUser.email;
                 authUserMenu.classList.remove("d-none");
                 authUserMenu.classList.add("d-flex");
                 authRequiredSection.classList.add("d-none");
                 budgetAppSection.classList.remove("d-none");
+
+                const adminLink = document.getElementById("navAdminLink");
+                if (adminLink) {
+                    adminLink.classList.add("d-none");
+                }
 
                 // Initialize default month/year in form to current date
                 const now = new Date();
@@ -141,6 +156,8 @@ document.addEventListener("DOMContentLoaded", () => {
         authUserMenu.classList.remove("d-flex");
         authRequiredSection.classList.remove("d-none");
         budgetAppSection.classList.add("d-none");
+        const adminLink = document.getElementById("navAdminLink");
+        if (adminLink) adminLink.classList.add("d-none");
     }
 
     /**
@@ -222,17 +239,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /**
-     * Handles Logout
+     * Handles Logout - clears session and returns to public homepage
      */
     if (btnLogout) {
         btnLogout.addEventListener("click", async () => {
             try {
                 await fetch("/api/auth/logout", { method: "POST" });
-                showToast("Logged out successfully");
-                handleUnauthenticated();
-            } catch (err) {
-                handleUnauthenticated();
-            }
+            } catch (err) {}
+            window.location.href = "index.html";
         });
     }
 
@@ -258,6 +272,45 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         } catch (e) {
             renderEmptyCurrentMonth(monthName, curYear);
+        }
+
+        // Stage 9: Load budget warning alerts
+        loadBudgetAlerts();
+    }
+
+    async function loadBudgetAlerts() {
+        const container = document.getElementById("budgetAlertWarningContainer");
+        if (!container) return;
+
+        try {
+            const res = await fetch("/api/budgets/alerts");
+            if (!res.ok) return;
+            const alerts = await res.json();
+            const criticalAlerts = alerts.filter(a => a.alertLevel === "WARNING" || a.alertLevel === "CRITICAL_WARNING" || a.alertLevel === "EXCEEDED");
+
+            if (criticalAlerts.length > 0) {
+                container.innerHTML = criticalAlerts.map(a => {
+                    let alertClass = "alert-warning";
+                    let iconClass = "bi-exclamation-triangle-fill text-warning";
+                    if (a.alertLevel === "EXCEEDED") {
+                        alertClass = "alert-danger";
+                        iconClass = "bi-exclamation-octagon-fill text-danger";
+                    }
+                    return `
+                        <div class="alert ${alertClass} shadow-sm border-0 rounded-4 d-flex align-items-center mb-2 p-3">
+                            <i class="bi ${iconClass} fs-3 me-3"></i>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold">${a.alertLevel.replace('_', ' ')}: ${MONTH_NAMES[a.month] || a.month} ${a.year}</div>
+                                <div>${a.message}</div>
+                            </div>
+                        </div>`;
+                }).join("");
+                container.classList.remove("d-none");
+            } else {
+                container.classList.add("d-none");
+            }
+        } catch (e) {
+            console.error("Failed to load budget alerts", e);
         }
     }
 
@@ -298,6 +351,11 @@ document.addEventListener("DOMContentLoaded", () => {
             currentProgressBar.className = "progress-bar progress-bar-striped progress-bar-animated bg-success";
         }
 
+        currentMonthBudgetId = b.id;
+        if (btnEditCurrentBudget) {
+            btnEditCurrentBudget.classList.remove("d-none");
+        }
+
         noCurrentBudgetNotice.classList.add("d-none");
     }
 
@@ -314,6 +372,11 @@ document.addEventListener("DOMContentLoaded", () => {
         currentProgressBar.style.width = "0%";
         currentProgressBar.className = "progress-bar bg-secondary";
         progressBarLabel.textContent = "0.0% Used";
+
+        currentMonthBudgetId = null;
+        if (btnEditCurrentBudget) {
+            btnEditCurrentBudget.classList.add("d-none");
+        }
 
         noCurrentBudgetNotice.classList.remove("d-none");
     }
@@ -380,7 +443,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             <button class="btn btn-outline-primary rounded-pill px-2 py-1 me-1 btn-edit" data-id="${b.id}" title="Edit Budget">
                                 <i class="bi bi-pencil"></i> Edit
                             </button>
-                            <button class="btn btn-outline-danger rounded-pill px-2 py-1 btn-delete" data-id="${b.id}" title="Delete Budget">
+                            <button class="btn btn-outline-danger rounded-pill px-2 py-1 btn-delete" data-id="${b.id}" title="Delete Budget" aria-label="Delete Budget">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
@@ -435,9 +498,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 amount: amountVal
             };
 
-            const isEdit = Boolean(formBudgetId.value);
-            const url = isEdit ? `/api/budgets/${formBudgetId.value}` : "/api/budgets";
+            const isEdit = editingBudgetId !== null || Boolean(formBudgetId.value);
+            const targetId = editingBudgetId || formBudgetId.value;
+            const url = isEdit ? `/api/budgets/${targetId}` : "/api/budgets";
             const method = isEdit ? "PUT" : "POST";
+
+            if (btnSaveBudget) {
+                btnSaveBudget.disabled = true;
+                btnSaveBudget.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>${isEdit ? "Updating..." : "Creating..."}`;
+            }
 
             try {
                 const res = await fetch(url, {
@@ -460,14 +529,25 @@ document.addEventListener("DOMContentLoaded", () => {
             } catch (err) {
                 formAlert.textContent = "Network error while saving budget";
                 formAlert.classList.remove("d-none");
+            } finally {
+                if (btnSaveBudget) {
+                    btnSaveBudget.disabled = false;
+                    btnSaveBudget.innerHTML = (editingBudgetId !== null || Boolean(formBudgetId.value))
+                        ? '<i class="bi bi-check2-circle me-1"></i> Update Budget'
+                        : '<i class="bi bi-plus-circle me-1"></i> Create Budget';
+                }
             }
         });
     }
 
     function resetBudgetForm() {
+        editingBudgetId = null;
         formBudgetId.value = "";
         formAlert.classList.add("d-none");
-        formCardTitle.innerHTML = '<i class="bi bi-pencil-square text-primary me-2"></i>Create or Update Budget';
+        formCardTitle.innerHTML = '<i class="bi bi-plus-circle text-primary me-2"></i>Create Budget';
+        if (btnSaveBudget) {
+            btnSaveBudget.innerHTML = '<i class="bi bi-plus-circle me-1"></i> Create Budget';
+        }
         btnCancelEdit.classList.add("d-none");
 
         const now = new Date();
@@ -486,21 +566,40 @@ document.addEventListener("DOMContentLoaded", () => {
     /**
      * Pre-fills the form for editing an existing budget.
      */
-    function handleEditBudget(id) {
-        const budget = allBudgets.find(b => b.id === id);
+    async function handleEditBudget(id) {
+        let budget = allBudgets.find(b => b.id === id);
+        if (!budget) {
+            try {
+                const res = await fetch(`/api/budgets/${id}`);
+                if (res.ok) {
+                    budget = await res.json();
+                }
+            } catch (err) {
+                console.error("Failed to fetch budget for edit", err);
+            }
+        }
         if (!budget) return;
 
+        editingBudgetId = budget.id;
         formBudgetId.value = budget.id;
         budgetMonth.value = String(budget.month);
         budgetYear.value = String(budget.year);
-        budgetAmount.value = budget.budgetAmount;
+        budgetAmount.value = budget.budgetAmount != null ? budget.budgetAmount : (budget.amount || "");
 
-        formCardTitle.innerHTML = `<i class="bi bi-pencil-fill text-warning me-2"></i>Update Budget (${MONTH_NAMES[budget.month]} ${budget.year})`;
+        const monthName = MONTH_NAMES[budget.month] || budget.month;
+        formCardTitle.innerHTML = `<i class="bi bi-pencil-fill text-warning me-2"></i>Update Budget (${monthName} ${budget.year})`;
+        if (btnSaveBudget) {
+            btnSaveBudget.innerHTML = '<i class="bi bi-check2-circle me-1"></i> Update Budget';
+        }
         btnCancelEdit.classList.remove("d-none");
         formAlert.classList.add("d-none");
 
         // Smooth scroll to form
-        document.getElementById("budgetFormCard").scrollIntoView({ behavior: "smooth" });
+        const formCard = document.getElementById("budgetFormCard");
+        if (formCard) {
+            formCard.scrollIntoView({ behavior: "smooth" });
+        }
+        budgetAmount.focus();
     }
 
     /**
@@ -510,6 +609,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const budget = allBudgets.find(b => b.id === id);
         if (!budget) return;
 
+        currentViewedBudgetId = budget.id;
         const monthName = MONTH_NAMES[budget.month] || budget.month;
         viewModalMonthYear.textContent = `${monthName} ${budget.year}`;
 
@@ -572,6 +672,24 @@ document.addEventListener("DOMContentLoaded", () => {
                 showToast("Network error while deleting budget", false);
             } finally {
                 budgetIdToDelete = null;
+            }
+        });
+    }
+
+    if (btnEditCurrentBudget) {
+        btnEditCurrentBudget.addEventListener("click", () => {
+            if (currentMonthBudgetId) {
+                handleEditBudget(currentMonthBudgetId);
+            }
+        });
+    }
+
+    if (btnEditModalBudget) {
+        btnEditModalBudget.addEventListener("click", () => {
+            if (currentViewedBudgetId) {
+                const idToEdit = currentViewedBudgetId;
+                viewBudgetModal.hide();
+                handleEditBudget(idToEdit);
             }
         });
     }

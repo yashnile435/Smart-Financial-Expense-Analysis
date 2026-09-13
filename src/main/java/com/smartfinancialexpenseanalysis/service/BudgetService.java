@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  * Service managing monthly spending budgets and deterministic financial metrics.
  *
  * Enforces strict user data ownership and provides calculated budget utilization
- * without any external AI services or machine learning.
+ * with exact arithmetic calculations.
  */
 @Service
 public class BudgetService {
@@ -158,11 +158,9 @@ public class BudgetService {
         Budget existing = budgetRepository.findByIdAndUserId(id, user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Budget not found with ID: " + id));
 
-        if (!existing.getMonth().equals(request.getMonth()) || !existing.getYear().equals(request.getYear())) {
-            Optional<Budget> duplicate = budgetRepository.findByUserIdAndMonthAndYear(user.getId(), request.getMonth(), request.getYear());
-            if (duplicate.isPresent() && !duplicate.get().getId().equals(id)) {
-                throw new DuplicateResourceException("A budget already exists for " + request.getMonth() + "/" + request.getYear());
-            }
+        Optional<Budget> duplicate = budgetRepository.findByUserIdAndMonthAndYear(user.getId(), request.getMonth(), request.getYear());
+        if (duplicate.isPresent() && !duplicate.get().getId().equals(id)) {
+            throw new DuplicateResourceException("A budget already exists for " + request.getMonth() + "/" + request.getYear());
         }
 
         existing.setMonth(request.getMonth());
@@ -232,6 +230,58 @@ public class BudgetService {
                 remainingAmount,
                 utilizationPercentage,
                 status
+        );
+    }
+
+    /**
+     * Retrieves deterministic budget warning alerts for the authenticated user.
+     *
+     * @param month     optional month
+     * @param year      optional year
+     * @param userEmail email of authenticated user
+     * @return list of BudgetAlertResponse DTOs
+     */
+    @Transactional(readOnly = true)
+    public List<com.smartfinancialexpenseanalysis.dto.BudgetAlertResponse> getBudgetAlerts(Integer month, Integer year, String userEmail) {
+        User user = getUserByEmail(userEmail);
+        List<Budget> budgets;
+        if (month != null && year != null) {
+            validateMonthAndYear(month, year);
+            budgets = budgetRepository.findByUserIdAndMonthAndYear(user.getId(), month, year)
+                    .map(List::of)
+                    .orElse(List.of());
+        } else {
+            budgets = budgetRepository.findByUserIdOrderByYearDescMonthDesc(user.getId());
+        }
+
+        return budgets.stream()
+                .map(b -> buildBudgetAlertResponse(b, user.getId()))
+                .collect(Collectors.toList());
+    }
+
+    private com.smartfinancialexpenseanalysis.dto.BudgetAlertResponse buildBudgetAlertResponse(Budget budget, Long userId) {
+        BudgetResponse br = buildBudgetResponse(budget, userId);
+        com.smartfinancialexpenseanalysis.dto.BudgetAlertLevel level = com.smartfinancialexpenseanalysis.dto.BudgetAlertLevel.fromUtilization(br.getUtilizationPercentage());
+        String message;
+        switch (level) {
+            case NORMAL -> message = String.format("You have used %s%% of your monthly budget.", br.getUtilizationPercentage());
+            case WARNING -> message = String.format("You have used %s%% of your monthly budget. Please monitor your spending.", br.getUtilizationPercentage());
+            case CRITICAL_WARNING -> message = String.format("Your spending is approaching the monthly budget limit (%s%% used).", br.getUtilizationPercentage());
+            case EXCEEDED -> message = String.format("Your monthly budget has been exceeded by ₹%s (%s%% used).",
+                    br.getTotalExpenses().subtract(br.getBudgetAmount()).abs(), br.getUtilizationPercentage());
+            default -> message = "Budget status normal.";
+        }
+
+        return new com.smartfinancialexpenseanalysis.dto.BudgetAlertResponse(
+                budget.getId(),
+                budget.getMonth(),
+                budget.getYear(),
+                br.getBudgetAmount(),
+                br.getTotalExpenses(),
+                br.getRemainingAmount(),
+                br.getUtilizationPercentage(),
+                level,
+                message
         );
     }
 

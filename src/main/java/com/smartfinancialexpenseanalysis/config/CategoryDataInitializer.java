@@ -35,6 +35,8 @@ public class CategoryDataInitializer implements CommandLineRunner {
         defaultCategories.put("Education", "Tuition, courses, books, and learning resources");
         defaultCategories.put("Entertainment", "Movies, streaming subscriptions, games, and events");
         defaultCategories.put("Health", "Medical expenses, pharmacy, insurance, and fitness");
+        defaultCategories.put("Rent", "Monthly apartment or house rent and lease payments");
+        defaultCategories.put("Utilities", "Gas, water, power, maintenance, and municipal services");
         defaultCategories.put("Other", "Miscellaneous and uncategorized expenses");
 
         defaultCategories.forEach((name, description) -> {

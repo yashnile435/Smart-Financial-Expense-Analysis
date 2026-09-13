@@ -429,4 +429,30 @@ class ExpenseControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
     }
+
+    @Test
+    @WithMockUser(username = "alice@example.com")
+    @DisplayName("23. Filter expenses by minAmount and maxAmount")
+    void testGetExpenses_MinMaxAmountFilter_Success() throws Exception {
+        expenseRepository.save(new Expense(userAlice, categoryFood, new BigDecimal("50.00"), LocalDate.of(2026, 9, 1), PaymentMethod.CASH, "Small Item"));
+        expenseRepository.save(new Expense(userAlice, categoryFood, new BigDecimal("250.00"), LocalDate.of(2026, 9, 2), PaymentMethod.UPI, "Medium Item"));
+        expenseRepository.save(new Expense(userAlice, categoryFood, new BigDecimal("1000.00"), LocalDate.of(2026, 9, 3), PaymentMethod.BANK_TRANSFER, "Large Item"));
+
+        mockMvc.perform(get("/api/expenses")
+                        .param("minAmount", "100.00")
+                        .param("maxAmount", "500.00"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].description").value("Medium Item"));
+    }
+
+    @Test
+    @WithMockUser(username = "alice@example.com")
+    @DisplayName("24. Invalid minAmount > maxAmount returns 400")
+    void testGetExpenses_InvalidMinMaxAmount_Returns400() throws Exception {
+        mockMvc.perform(get("/api/expenses")
+                        .param("minAmount", "500.00")
+                        .param("maxAmount", "100.00"))
+                .andExpect(status().isBadRequest());
+    }
 }

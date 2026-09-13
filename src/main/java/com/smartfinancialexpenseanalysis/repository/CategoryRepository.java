@@ -20,6 +20,8 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
      */
     Optional<Category> findByName(String name);
 
+    Optional<Category> findByNameIgnoreCase(String name);
+
     /**
      * Check if a category with the given name exists.
      *
@@ -27,4 +29,14 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
      * @return true if category exists, false otherwise
      */
     boolean existsByName(String name);
+
+    /**
+     * Check if a category with the given name exists ignoring case.
+     */
+    boolean existsByNameIgnoreCase(String name);
+
+    /**
+     * Check if another category exists with the given name ignoring case.
+     */
+    boolean existsByNameIgnoreCaseAndIdNot(String name, Long id);
 }

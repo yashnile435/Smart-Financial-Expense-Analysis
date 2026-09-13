@@ -27,4 +27,29 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @return true if user exists, false otherwise
      */
     boolean existsByEmail(String email);
+
+    /**
+     * Count users with enabled status true.
+     */
+    long countByEnabledTrue();
+
+    /**
+     * Count users with a specific role.
+     */
+    long countByRole(com.smartfinancialexpenseanalysis.entity.Role role);
+
+    /**
+     * Count users with a specific role and enabled status true.
+     */
+    long countByRoleAndEnabledTrue(com.smartfinancialexpenseanalysis.entity.Role role);
+
+    /**
+     * Find all users ordered by ID descending.
+     */
+    java.util.List<User> findAllByOrderByIdDesc();
+
+    /**
+     * Search users by name or email (case-insensitive substring match) ordered by ID descending.
+     */
+    java.util.List<User> findByNameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrderByIdDesc(String name, String email);
 }

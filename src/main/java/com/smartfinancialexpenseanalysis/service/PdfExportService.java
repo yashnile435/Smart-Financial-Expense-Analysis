@@ -1,0 +1,289 @@
+package com.smartfinancialexpenseanalysis.service;
+
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Element;
+import com.lowagie.text.Font;
+import com.lowagie.text.FontFactory;
+import com.lowagie.text.PageSize;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.Phrase;
+import com.lowagie.text.pdf.PdfPCell;
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfWriter;
+import com.smartfinancialexpenseanalysis.dto.BudgetComparisonResponse;
+import com.smartfinancialexpenseanalysis.dto.CategoryReportResponse;
+import com.smartfinancialexpenseanalysis.dto.ExpenseReportItemResponse;
+import com.smartfinancialexpenseanalysis.dto.FinancialReportResponse;
+import com.smartfinancialexpenseanalysis.dto.PaymentMethodReportResponse;
+import com.smartfinancialexpenseanalysis.dto.ReportSummaryResponse;
+import org.springframework.stereotype.Service;
+
+import java.awt.Color;
+import java.io.ByteArrayOutputStream;
+import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.util.Locale;
+
+/**
+ * Service generating local, deterministic PDF reports using OpenPDF.
+ * Excludes all sensitive authentication details, passwords, and user IDs.
+ */
+@Service
+public class PdfExportService {
+
+    private static final Color COLOR_PRIMARY = new Color(30, 41, 59); // Slate dark
+    private static final Color COLOR_HEADER_BG = new Color(241, 245, 249); // Light slate
+    private static final Color COLOR_ACCENT = new Color(13, 110, 253); // Bootstrap primary
+    private static final Color COLOR_TEXT_MUTED = new Color(100, 116, 139);
+    private static final Color COLOR_ROW_ALT = new Color(248, 250, 252);
+    private static final Color COLOR_BORDER = new Color(226, 232, 240);
+
+    /**
+     * Generates a PDF byte array from a FinancialReportResponse.
+     *
+     * @param report the complete financial report
+     * @return PDF byte array
+     */
+    public byte[] generatePdf(FinancialReportResponse report) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        Document document = new Document(PageSize.A4, 36, 36, 36, 36);
+
+        try {
+            PdfWriter.getInstance(document, out);
+            document.open();
+
+            // 1. Header Banner & Title
+            Font brandFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, COLOR_ACCENT);
+            Paragraph brand = new Paragraph("SMART FINANCIAL EXPENSE ANALYSIS", brandFont);
+            brand.setAlignment(Element.ALIGN_LEFT);
+            brand.setSpacingAfter(4);
+            document.add(brand);
+
+            Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, COLOR_PRIMARY);
+            String titleText = report.getSummary() != null ? report.getSummary().getReportTitle() : "Financial Report";
+            Paragraph title = new Paragraph(titleText, titleFont);
+            title.setSpacingAfter(4);
+            document.add(title);
+
+            if (report.getSummary() != null) {
+                Font subFont = FontFactory.getFont(FontFactory.HELVETICA, 10, COLOR_TEXT_MUTED);
+                String periodText = String.format("Period: %s to %s",
+                        report.getSummary().getStartDate(), report.getSummary().getEndDate());
+                Paragraph sub = new Paragraph(periodText, subFont);
+                sub.setSpacingAfter(15);
+                document.add(sub);
+            }
+
+            // 2. Summary Statistics Card Table
+            if (report.getSummary() != null) {
+                document.add(createSectionHeading("Summary Statistics"));
+                document.add(createSummaryTable(report.getSummary()));
+            }
+
+            // 3. Budget vs Actual Comparison (if configured/available)
+            if (report.getBudgetComparison() != null) {
+                document.add(createSectionHeading("Budget vs Actual Spending"));
+                document.add(createBudgetTable(report.getBudgetComparison()));
+            }
+
+            // 4. Category Breakdown
+            if (report.getCategoryBreakdown() != null && !report.getCategoryBreakdown().isEmpty()) {
+                document.add(createSectionHeading("Category Breakdown"));
+                document.add(createCategoryTable(report.getCategoryBreakdown()));
+            }
+
+            // 5. Payment Method Breakdown
+            if (report.getPaymentMethodBreakdown() != null && !report.getPaymentMethodBreakdown().isEmpty()) {
+                document.add(createSectionHeading("Payment Method Breakdown"));
+                document.add(createPaymentMethodTable(report.getPaymentMethodBreakdown()));
+            }
+
+            // 6. Detailed Transactions Table
+            document.add(createSectionHeading("Transaction Details"));
+            document.add(createExpensesTable(report.getExpenses()));
+
+            // 7. Footer Notice
+            Font footerFont = FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 8, COLOR_TEXT_MUTED);
+            Paragraph footer = new Paragraph("\n* Generated by Smart Financial Expense Analysis. All calculations in INR.", footerFont);
+            footer.setAlignment(Element.ALIGN_CENTER);
+            document.add(footer);
+
+            document.close();
+        } catch (DocumentException e) {
+            throw new RuntimeException("Failed to generate PDF report: " + e.getMessage(), e);
+        }
+
+        return out.toByteArray();
+    }
+
+    private Paragraph createSectionHeading(String text) {
+        Font sectionFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, COLOR_PRIMARY);
+        Paragraph heading = new Paragraph(text, sectionFont);
+        heading.setSpacingBefore(12);
+        heading.setSpacingAfter(6);
+        return heading;
+    }
+
+    private PdfPTable createSummaryTable(ReportSummaryResponse summary) {
+        PdfPTable table = new PdfPTable(5);
+        table.setWidthPercentage(100);
+        table.setSpacingAfter(10);
+
+        addHeaderCell(table, "Total Expenses");
+        addHeaderCell(table, "Transactions");
+        addHeaderCell(table, "Average");
+        addHeaderCell(table, "Highest");
+        addHeaderCell(table, "Lowest");
+
+        addDataCell(table, formatInr(summary.getTotalExpenses()), Element.ALIGN_RIGHT);
+        addDataCell(table, String.valueOf(summary.getExpenseCount()), Element.ALIGN_CENTER);
+        addDataCell(table, formatInr(summary.getAverageExpense()), Element.ALIGN_RIGHT);
+        addDataCell(table, formatInr(summary.getHighestExpense()), Element.ALIGN_RIGHT);
+        addDataCell(table, formatInr(summary.getLowestExpense()), Element.ALIGN_RIGHT);
+
+        return table;
+    }
+
+    private PdfPTable createBudgetTable(BudgetComparisonResponse b) {
+        PdfPTable table = new PdfPTable(5);
+        table.setWidthPercentage(100);
+        table.setSpacingAfter(10);
+
+        addHeaderCell(table, "Budget Amount");
+        addHeaderCell(table, "Actual Spending");
+        addHeaderCell(table, "Remaining");
+        addHeaderCell(table, "Utilization");
+        addHeaderCell(table, "Status");
+
+        if (b.isBudgetConfigured()) {
+            addDataCell(table, formatInr(b.getBudgetAmount()), Element.ALIGN_RIGHT);
+            addDataCell(table, formatInr(b.getActualExpense()), Element.ALIGN_RIGHT);
+            addDataCell(table, formatInr(b.getRemainingAmount()), Element.ALIGN_RIGHT);
+            addDataCell(table, b.getUtilizationPercentage() + "%", Element.ALIGN_CENTER);
+            addDataCell(table, b.getStatus(), Element.ALIGN_CENTER);
+        } else {
+            addDataCell(table, "Not Configured", Element.ALIGN_CENTER);
+            addDataCell(table, formatInr(b.getActualExpense()), Element.ALIGN_RIGHT);
+            addDataCell(table, "N/A", Element.ALIGN_CENTER);
+            addDataCell(table, "N/A", Element.ALIGN_CENTER);
+            addDataCell(table, "NOT CONFIGURED", Element.ALIGN_CENTER);
+        }
+
+        return table;
+    }
+
+    private PdfPTable createCategoryTable(java.util.List<CategoryReportResponse> list) {
+        PdfPTable table = new PdfPTable(4);
+        table.setWidthPercentage(100);
+        table.setSpacingAfter(10);
+
+        addHeaderCell(table, "Category");
+        addHeaderCell(table, "Transactions");
+        addHeaderCell(table, "Total Amount");
+        addHeaderCell(table, "Share (%)");
+
+        boolean alt = false;
+        for (CategoryReportResponse item : list) {
+            Color rowBg = alt ? COLOR_ROW_ALT : Color.WHITE;
+            addDataCellWithBg(table, item.getCategoryName(), Element.ALIGN_LEFT, rowBg);
+            addDataCellWithBg(table, String.valueOf(item.getExpenseCount()), Element.ALIGN_CENTER, rowBg);
+            addDataCellWithBg(table, formatInr(item.getTotalAmount()), Element.ALIGN_RIGHT, rowBg);
+            addDataCellWithBg(table, item.getPercentage() + "%", Element.ALIGN_RIGHT, rowBg);
+            alt = !alt;
+        }
+
+        return table;
+    }
+
+    private PdfPTable createPaymentMethodTable(java.util.List<PaymentMethodReportResponse> list) {
+        PdfPTable table = new PdfPTable(4);
+        table.setWidthPercentage(100);
+        table.setSpacingAfter(10);
+
+        addHeaderCell(table, "Payment Method");
+        addHeaderCell(table, "Transactions");
+        addHeaderCell(table, "Total Amount");
+        addHeaderCell(table, "Share (%)");
+
+        boolean alt = false;
+        for (PaymentMethodReportResponse item : list) {
+            Color rowBg = alt ? COLOR_ROW_ALT : Color.WHITE;
+            addDataCellWithBg(table, item.getPaymentMethod().name(), Element.ALIGN_LEFT, rowBg);
+            addDataCellWithBg(table, String.valueOf(item.getExpenseCount()), Element.ALIGN_CENTER, rowBg);
+            addDataCellWithBg(table, formatInr(item.getTotalAmount()), Element.ALIGN_RIGHT, rowBg);
+            addDataCellWithBg(table, item.getPercentage() + "%", Element.ALIGN_RIGHT, rowBg);
+            alt = !alt;
+        }
+
+        return table;
+    }
+
+    private PdfPTable createExpensesTable(java.util.List<ExpenseReportItemResponse> list) {
+        PdfPTable table = new PdfPTable(new float[]{2.0f, 2.5f, 4.0f, 2.5f, 2.5f});
+        table.setWidthPercentage(100);
+        table.setSpacingAfter(10);
+
+        addHeaderCell(table, "Date");
+        addHeaderCell(table, "Category");
+        addHeaderCell(table, "Description");
+        addHeaderCell(table, "Payment Method");
+        addHeaderCell(table, "Amount");
+
+        if (list == null || list.isEmpty()) {
+            PdfPCell emptyCell = new PdfPCell(new Phrase("No expenses found for the selected period.",
+                    FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 9, COLOR_TEXT_MUTED)));
+            emptyCell.setColspan(5);
+            emptyCell.setPadding(10);
+            emptyCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            table.addCell(emptyCell);
+            return table;
+        }
+
+        boolean alt = false;
+        for (ExpenseReportItemResponse item : list) {
+            Color rowBg = alt ? COLOR_ROW_ALT : Color.WHITE;
+            addDataCellWithBg(table, String.valueOf(item.getDate()), Element.ALIGN_LEFT, rowBg);
+            addDataCellWithBg(table, item.getCategory(), Element.ALIGN_LEFT, rowBg);
+            addDataCellWithBg(table, item.getDescription() != null ? item.getDescription() : "-", Element.ALIGN_LEFT, rowBg);
+            addDataCellWithBg(table, item.getPaymentMethod() != null ? item.getPaymentMethod().name() : "-", Element.ALIGN_CENTER, rowBg);
+            addDataCellWithBg(table, formatInr(item.getAmount()), Element.ALIGN_RIGHT, rowBg);
+            alt = !alt;
+        }
+
+        return table;
+    }
+
+    private void addHeaderCell(PdfPTable table, String text) {
+        Font font = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9, COLOR_PRIMARY);
+        PdfPCell cell = new PdfPCell(new Phrase(text, font));
+        cell.setBackgroundColor(COLOR_HEADER_BG);
+        cell.setBorderColor(COLOR_BORDER);
+        cell.setPadding(6);
+        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        table.addCell(cell);
+    }
+
+    private void addDataCell(PdfPTable table, String text, int align) {
+        addDataCellWithBg(table, text, align, Color.WHITE);
+    }
+
+    private void addDataCellWithBg(PdfPTable table, String text, int align, Color bg) {
+        Font font = FontFactory.getFont(FontFactory.HELVETICA, 8, COLOR_PRIMARY);
+        PdfPCell cell = new PdfPCell(new Phrase(text != null ? text : "", font));
+        cell.setBackgroundColor(bg);
+        cell.setBorderColor(COLOR_BORDER);
+        cell.setPadding(5);
+        cell.setHorizontalAlignment(align);
+        cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        table.addCell(cell);
+    }
+
+    private String formatInr(BigDecimal amount) {
+        if (amount == null) {
+            return "INR 0.00";
+        }
+        return "INR " + amount.setScale(2, java.math.RoundingMode.HALF_UP).toPlainString();
+    }
+}

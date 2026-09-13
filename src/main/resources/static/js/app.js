@@ -1,88 +1,21 @@
 /**
- * Project development stages configuration.
- * Easily update the status ('completed' | 'active' | 'upcoming') as development proceeds.
+ * Smart Financial Expense Analysis
+ * Homepage Script: Handles live backend health check and authentication state.
  */
-const PROJECT_STAGES = [
-    {
-        number: 1,
-        title: "Stage 1: Project Setup (Java + Spring Boot + Maven + MySQL)",
-        status: "completed"
-    },
-    {
-        number: 2,
-        title: "Stage 2: Database & Entities",
-        status: "completed"
-    },
-    {
-        number: 3,
-        title: "Stage 3: Authentication (Registration, Login, Roles)",
-        status: "completed"
-    },
-    {
-        number: 4,
-        title: "Stage 4: Expense Management (CRUD, Search, Filter)",
-        status: "completed"
-    },
-    {
-        number: 5,
-        title: "Stage 5: Budget Management (Limits, Utilization, Tracking)",
-        status: "active"
-    },
-    {
-        number: "6-10",
-        title: "Stages 6-10: Analytics, Dashboard, UI & Testing",
-        status: "upcoming"
-    }
-];
-
-/**
- * Dynamically renders the project stages list based on the configuration array.
- */
-function renderProjectStages() {
-    const listElement = document.getElementById("projectStagesList");
-    if (!listElement) return;
-
-    listElement.innerHTML = PROJECT_STAGES.map(stage => {
-        let itemClass = "list-group-item d-flex justify-content-between align-items-center stage-item";
-        let iconHtml = "";
-        let badgeHtml = "";
-
-        if (stage.status === "completed") {
-            itemClass += " stage-completed bg-white";
-            iconHtml = '<i class="bi bi-check-circle-fill text-success me-2"></i>';
-            badgeHtml = '<span class="badge bg-success">Completed</span>';
-        } else if (stage.status === "active") {
-            itemClass += " stage-active bg-primary-subtle text-primary-emphasis fw-semibold";
-            iconHtml = '<i class="bi bi-record-circle-fill text-primary me-2"></i>';
-            badgeHtml = '<span class="badge bg-primary">Active</span>';
-        } else {
-            itemClass += " stage-upcoming text-muted bg-light-subtle";
-            iconHtml = '<i class="bi bi-clock me-2"></i>';
-            badgeHtml = '<span class="badge bg-secondary">Upcoming</span>';
-        }
-
-        return `<li class="${itemClass}">
-            <span>${iconHtml}${stage.title}</span>
-            ${badgeHtml}
-        </li>`;
-    }).join("");
-}
-
-// Frontend script to initialize stages and test backend connectivity via /api/health
 document.addEventListener("DOMContentLoaded", () => {
-    // Render stages from configuration
-    renderProjectStages();
-
     const indicator = document.getElementById("statusIndicator");
     const statusText = document.getElementById("statusText");
-    const healthResponseContainer = document.getElementById("healthResponseContainer");
-    const healthResponse = document.getElementById("healthResponse");
     const btnRefresh = document.getElementById("btnRefreshHealth");
 
+    /**
+     * Pings /api/health to verify backend connectivity and MySQL database status.
+     */
     async function checkBackendHealth() {
+        if (!indicator || !statusText) return;
+
         indicator.className = "status-indicator status-checking";
         statusText.textContent = "Checking backend connection...";
-        statusText.className = "fw-bold fs-5 text-secondary";
+        statusText.className = "fw-semibold small text-secondary";
 
         try {
             const response = await fetch("/api/health");
@@ -90,18 +23,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 const data = await response.json();
                 indicator.className = "status-indicator status-online";
                 statusText.textContent = "Backend is ONLINE (" + data.status + ")";
-                statusText.className = "fw-bold fs-5 text-success";
-                healthResponse.textContent = JSON.stringify(data, null, 2);
-                healthResponseContainer.classList.remove("d-none");
+                statusText.className = "fw-semibold small text-success";
             } else {
                 throw new Error("HTTP error! status: " + response.status);
             }
         } catch (error) {
             indicator.className = "status-indicator status-offline";
             statusText.textContent = "Backend is unreachable";
-            statusText.className = "fw-bold fs-5 text-danger";
-            healthResponse.textContent = "Could not connect to /api/health:\n" + error.message;
-            healthResponseContainer.classList.remove("d-none");
+            statusText.className = "fw-semibold small text-danger";
         }
     }
 
@@ -109,7 +38,85 @@ document.addEventListener("DOMContentLoaded", () => {
         btnRefresh.addEventListener("click", checkBackendHealth);
     }
 
-    // Initial check on load
-    checkBackendHealth();
-});
+    /**
+     * Checks current session authentication state for the homepage navbar.
+     */
+    async function checkAuthState() {
+        const unauthNav = document.getElementById("unauthNav");
+        const authUserMenu = document.getElementById("authUserMenu");
+        const currentUserName = document.getElementById("currentUserName");
+        const adminLink = document.getElementById("navAdminLink");
+        const btnLogout = document.getElementById("btnLogout");
 
+        function showLoggedOutUI() {
+            if (unauthNav) {
+                unauthNav.classList.remove("d-none");
+                unauthNav.classList.add("d-flex");
+            }
+            if (authUserMenu) {
+                authUserMenu.classList.add("d-none");
+                authUserMenu.classList.remove("d-flex");
+            }
+            if (adminLink) adminLink.classList.add("d-none");
+        }
+
+        function showLoggedInUI(user) {
+            if (unauthNav) {
+                unauthNav.classList.add("d-none");
+                unauthNav.classList.remove("d-flex");
+            }
+            if (authUserMenu) {
+                authUserMenu.classList.remove("d-none");
+                authUserMenu.classList.add("d-flex");
+            }
+            if (currentUserName) {
+                currentUserName.textContent = user.name || user.email;
+            }
+
+            if (user.role === "ADMIN") {
+                if (adminLink) adminLink.classList.remove("d-none");
+                // Hide personal links from navbar for ADMIN
+                if (authUserMenu) {
+                    authUserMenu.querySelectorAll("a.app-nav-link:not(#navAdminLink)").forEach(el => el.classList.add("d-none"));
+                }
+                document.querySelectorAll("a[href='dashboard.html']").forEach(el => {
+                    el.href = "admin.html";
+                    if (el.textContent.includes("Get Started")) {
+                        el.innerHTML = '<i class="bi bi-shield-lock me-1"></i> Admin Console';
+                    }
+                });
+            } else {
+                if (adminLink) adminLink.classList.add("d-none");
+                if (authUserMenu) {
+                    authUserMenu.querySelectorAll("a.app-nav-link:not(#navAdminLink)").forEach(el => el.classList.remove("d-none"));
+                }
+            }
+        }
+
+        try {
+            const res = await fetch("/api/auth/me");
+            if (res.ok) {
+                const user = await res.json();
+                showLoggedInUI(user);
+            } else {
+                showLoggedOutUI();
+            }
+        } catch (e) {
+            showLoggedOutUI();
+        }
+
+        if (btnLogout) {
+            btnLogout.addEventListener("click", async () => {
+                try {
+                    await fetch("/api/auth/logout", { method: "POST" });
+                } catch (e) {}
+                showLoggedOutUI();
+                window.location.reload();
+            });
+        }
+    }
+
+    // Initial checks on page load
+    checkBackendHealth();
+    checkAuthState();
+});

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Savings Goals - Smart Financial Expense Analysis</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Top Navbar -->
+    <nav class="navbar navbar-expand-xl navbar-dark app-navbar py-3 sticky-top">
+        <div class="container-xl">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="index.html">
+                <span class="brand-icon">
+                    <i class="bi bi-wallet2"></i>
+                </span>
+                <span class="brand-text">Smart Financial Expense Analysis</span>
+            </a>
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navContent" aria-controls="navContent" aria-expanded="false" aria-label="Toggle navigation">
+                <i class="bi bi-list fs-2 text-white"></i>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navContent">
+                <ul class="navbar-nav mx-auto mb-2 mb-xl-0 gap-1">
+                    <li class="nav-item">
+                        <a class="nav-link app-nav-link" href="dashboard.html">
+                            <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link app-nav-link" href="expenses.html">
+                            <i class="bi bi-receipt me-1"></i> Expenses
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link app-nav-link" href="budgets.html">
+                            <i class="bi bi-pie-chart me-1"></i> Budgets
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link app-nav-link" href="reports.html">
+                            <i class="bi bi-file-earmark-bar-graph me-1"></i> Reports
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link app-nav-link active" href="goals.html">
+                            <i class="bi bi-bullseye me-1"></i> Goals
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link app-nav-link" href="recurring-expenses.html">
+                            <i class="bi bi-arrow-repeat me-1"></i> Recurring
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link app-nav-link" href="profile.html">
+                            <i class="bi bi-person-gear me-1"></i> Profile
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link app-nav-link nav-admin-item d-none" id="navAdminLink" href="admin.html">
+                            <i class="bi bi-shield-lock me-1"></i> Admin
+                        </a>
+                    </li>
+                </ul>
+                <div id="authUserMenu" class="d-none align-items-center gap-2 mt-2 mt-xl-0">
+                    <div class="user-pill d-flex align-items-center gap-2 px-3 py-1 rounded-pill">
+                        <i class="bi bi-person-circle"></i>
+                        <span id="currentUserName" class="fw-semibold small">User</span>
+                    </div>
+                    <button id="btnLogout" class="btn btn-outline-danger btn-sm rounded-pill px-3" aria-label="Logout">
+                        <i class="bi bi-box-arrow-right me-1"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="container-xl my-4">
+        <!-- Toast Notification Container -->
+        <div class="position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+            <div id="actionToast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body" id="toastMessage">Notification message</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auth Required Section -->
+        <section id="authRequiredSection" class="row justify-content-center my-5 d-none">
+            <div class="col-md-6 col-lg-5">
+                <div class="card shadow border-0 rounded-4 overflow-hidden">
+                    <div class="card-header bg-gradient-primary text-white text-center p-4">
+                        <div class="stat-icon primary mx-auto mb-2" style="background: rgba(255,255,255,0.2); color: #ffffff;">
+                            <i class="bi bi-shield-lock fs-2"></i>
+                        </div>
+                        <h4 class="fw-bold mb-1">Authentication Required</h4>
+                        <p class="text-white-50 small mb-0">Please sign in to access and manage your savings goals</p>
+                    </div>
+                    <div class="card-body p-4 text-center">
+                        <a href="dashboard.html" class="btn btn-primary rounded-pill px-4">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Go to Login
+                        </a>
+                        <div class="mt-3">
+                            <a href="index.html" class="text-secondary small fw-semibold text-decoration-none">
+                                <i class="bi bi-arrow-left me-1"></i> Back to Home
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Goals Content -->
+        <section id="goalsContentSection" class="d-none">
+            <!-- Header Banner -->
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4 pb-3 border-bottom">
+                <div>
+                    <h2 class="fw-bold mb-1 d-flex align-items-center gap-2">
+                        <i class="bi bi-trophy text-primary"></i>
+                        <span>Financial Savings Goals</span>
+                    </h2>
+                    <p class="text-secondary small mb-0">Plan, track, and deposit towards your future financial milestones</p>
+                </div>
+                <button class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#createGoalModal">
+                    <i class="bi bi-plus-circle me-1"></i> Create Savings Goal
+                </button>
+            </div>
+
+            <!-- Summary KPI Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Goals</div>
+                        <h3 class="stat-value text-primary mb-0" id="kpiTotalGoals">0</h3>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="stat-label">Active Goals</div>
+                        <h3 class="stat-value text-dark mb-0" id="kpiActiveGoals">0</h3>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Target</div>
+                        <h3 class="stat-value text-dark mb-0" id="kpiTotalTarget">₹0.00</h3>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Saved</div>
+                        <h3 class="stat-value text-success mb-0" id="kpiTotalSaved">₹0.00</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Goals Grid -->
+            <div class="row g-4" id="goalsListContainer">
+                <div class="col-12 text-center py-5 text-muted">
+                    <div class="spinner-border text-primary mb-2" role="status"></div>
+                    <div>Loading your savings goals...</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal: Create Goal -->
+    <div class="modal fade" id="createGoalModal" tabindex="-1" aria-labelledby="createGoalModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-gradient-primary text-white">
+                    <h5 class="modal-title fw-bold" id="createGoalModalLabel">
+                        <i class="bi bi-trophy me-2"></i>Create New Savings Goal
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="createGoalForm">
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label for="goalName" class="form-label">Goal Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="goalName" placeholder="e.g. Emergency Fund, New Laptop" required maxlength="100">
+                        </div>
+                        <div class="mb-3">
+                            <label for="goalDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="goalDescription" rows="2" placeholder="Optional notes or details" maxlength="255"></textarea>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label for="goalTargetAmount" class="form-label">Target Amount (₹) <span class="text-danger">*</span></label>
+                                <input type="number" step="0.01" min="0.01" class="form-control" id="goalTargetAmount" placeholder="50000.00" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="goalCurrentAmount" class="form-label">Initial Saved (₹)</label>
+                                <input type="number" step="0.01" min="0" class="form-control" id="goalCurrentAmount" placeholder="0.00" value="0.00">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="goalTargetDate" class="form-label">Target Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="goalTargetDate" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-4 pt-0">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold" id="btnSaveGoal">
+                            <i class="bi bi-check2-circle me-1"></i> Save Goal
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Add Contribution -->
+    <div class="modal fade" id="contributionModal" tabindex="-1" aria-labelledby="contributionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-gradient-primary text-white">
+                    <h5 class="modal-title fw-bold" id="contributionModalLabel">
+                        <i class="bi bi-cash-stack me-2"></i>Add Savings Contribution
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="contributionForm">
+                    <input type="hidden" id="contribGoalId">
+                    <div class="modal-body p-4">
+                        <div class="mb-3 p-3 bg-light rounded-3 border">
+                            <h6 class="fw-bold text-dark mb-1" id="contribGoalName">Goal Name</h6>
+                            <p class="text-muted small mb-0" id="contribGoalProgress">Progress: ₹0 / ₹0 (0%)</p>
+                        </div>
+                        <div class="mb-3">
+                            <label for="contribAmount" class="form-label">Contribution Amount (₹) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" step="0.01" min="0.01" class="form-control fs-5 fw-bold text-primary" id="contribAmount" placeholder="e.g. 5000.00" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-4 pt-0">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold" id="btnSubmitContrib">
+                            <i class="bi bi-arrow-up-circle me-1"></i> Deposit Contribution
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="js/goals.js"></script>
+</body>
+</html>

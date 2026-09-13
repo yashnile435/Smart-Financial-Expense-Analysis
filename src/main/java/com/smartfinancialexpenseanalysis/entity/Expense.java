@@ -2,8 +2,6 @@ package com.smartfinancialexpenseanalysis.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -53,8 +51,7 @@ public class Expense {
     private LocalDate date;
 
     @NotNull(message = "Payment method is required")
-    @Enumerated(EnumType.STRING)
-    @Column(name = "payment_method", nullable = false, length = 30)
+    @Column(name = "payment_method", nullable = false, length = 50)
     private PaymentMethod paymentMethod;
 
     @Size(max = 255, message = "Description must not exceed 255 characters")
@@ -70,6 +67,15 @@ public class Expense {
         this.amount = amount;
         this.date = date;
         this.paymentMethod = paymentMethod;
+        this.description = description;
+    }
+
+    public Expense(User user, Category category, BigDecimal amount, LocalDate date, String paymentMethod, String description) {
+        this.user = user;
+        this.category = category;
+        this.amount = amount;
+        this.date = date;
+        this.paymentMethod = PaymentMethod.of(paymentMethod);
         this.description = description;
     }
 

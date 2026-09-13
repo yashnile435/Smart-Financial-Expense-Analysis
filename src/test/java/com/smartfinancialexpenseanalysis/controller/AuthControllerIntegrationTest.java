@@ -224,4 +224,35 @@ class AuthControllerIntegrationTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Welcome Admin! Role-based access verified."));
     }
+
+    @Test
+    @DisplayName("POST /api/auth/login - Schema-seeded Admin with Admin@123 authenticates via BCrypt hash")
+    void testSchemaSeededAdminBcryptAuthentication() throws Exception {
+        String adminEmail = "admin.seed.test@example.com";
+        String rawPassword = "Admin@123";
+        // Exact BCrypt hash used in database/schema.sql
+        String bcryptHash = "$2a$10$QOVBux01SNAs1.XY0cW5HehVIQ78jh5Lnq81gyFEtKJJ5Vtqqki22";
+
+        assertTrue(passwordEncoder.matches(rawPassword, bcryptHash), "BCrypt hash must match Admin@123");
+
+        userRepository.save(new User("Administrator", adminEmail, bcryptHash, Role.ADMIN, true));
+
+        LoginRequest loginRequest = new LoginRequest(adminEmail, rawPassword);
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.user.email").value(adminEmail))
+                .andExpect(jsonPath("$.user.role").value("ADMIN"))
+                .andReturn();
+
+        MockHttpSession session = (MockHttpSession) loginResult.getRequest().getSession(false);
+        assertNotNull(session);
+
+        // Verify authenticated session can access admin endpoint
+        mockMvc.perform(get("/api/admin/test").session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
+    }
 }

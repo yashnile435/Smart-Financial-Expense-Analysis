@@ -97,6 +97,8 @@ public class AuthService {
             authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(normalizedEmail, request.getPassword())
             );
+        } catch (org.springframework.security.authentication.DisabledException ex) {
+            throw new BadCredentialsException("Account is disabled. Please contact an administrator.");
         } catch (AuthenticationException ex) {
             // Generic message prevents account enumeration
             throw new BadCredentialsException("Invalid email or password");

@@ -29,8 +29,8 @@ public class HealthController {
         Map<String, Object> response = new HashMap<>();
         response.put("status", "UP");
         response.put("service", "Smart Financial Expense Analysis");
-        response.put("stage", "Stage 1 - Project Setup");
-        response.put("message", "Backend is running successfully!");
+        response.put("stage", "Production Ready (Stages 1-10 Completed)");
+        response.put("message", "Application is healthy and running successfully.");
         response.put("timestamp", LocalDateTime.now().toString());
 
         return ResponseEntity.ok(response);

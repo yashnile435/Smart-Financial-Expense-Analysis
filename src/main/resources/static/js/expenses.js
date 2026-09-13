@@ -41,6 +41,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const filterPaymentMethod = document.getElementById("filterPaymentMethod");
     const filterStartDate = document.getElementById("filterStartDate");
     const filterEndDate = document.getElementById("filterEndDate");
+    const filterMinAmount = document.getElementById("filterMinAmount");
+    const filterMaxAmount = document.getElementById("filterMaxAmount");
     const btnClearFilters = document.getElementById("btnClearFilters");
 
     // Expense Modal Elements
@@ -55,6 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const modalPaymentMethod = document.getElementById("modalPaymentMethod");
     const modalDescription = document.getElementById("modalDescription");
     const modalAlert = document.getElementById("modalAlert");
+    const btnSaveExpense = document.getElementById("btnSaveExpense");
 
     // Delete Modal Elements
     const deleteModalEl = document.getElementById("deleteModal");
@@ -80,14 +83,24 @@ document.addEventListener("DOMContentLoaded", () => {
             const res = await fetch("/api/auth/me");
             if (res.ok) {
                 currentUser = await res.json();
+                if (currentUser.role === "ADMIN") {
+                    window.location.href = "admin.html";
+                    return;
+                }
                 currentUserName.textContent = currentUser.name || currentUser.email;
                 authUserMenu.classList.remove("d-none");
                 authUserMenu.classList.add("d-flex");
                 authRequiredSection.classList.add("d-none");
                 expenseAppSection.classList.remove("d-none");
 
-                // Initialize categories and expenses
+                const adminLink = document.getElementById("navAdminLink");
+                if (adminLink) {
+                    adminLink.classList.add("d-none");
+                }
+
+                // Initialize categories, payment options and expenses
                 await loadCategories();
+                await loadPaymentOptions();
                 await loadExpenses();
             } else {
                 handleUnauthenticated();
@@ -103,6 +116,8 @@ document.addEventListener("DOMContentLoaded", () => {
         authUserMenu.classList.remove("d-flex");
         authRequiredSection.classList.remove("d-none");
         expenseAppSection.classList.add("d-none");
+        const adminLink = document.getElementById("navAdminLink");
+        if (adminLink) adminLink.classList.add("d-none");
     }
 
     /**
@@ -190,17 +205,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /**
-     * Handles User Logout
+     * Handles User Logout - clears session and returns to public homepage
      */
     if (btnLogout) {
         btnLogout.addEventListener("click", async () => {
             try {
                 await fetch("/api/auth/logout", { method: "POST" });
-                showToast("Logged out successfully");
-                handleUnauthenticated();
-            } catch (err) {
-                handleUnauthenticated();
-            }
+            } catch (err) {}
+            window.location.href = "index.html";
         });
     }
 
@@ -236,6 +248,42 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /**
+     * Loads available active payment options from /api/payment-options
+     */
+    async function loadPaymentOptions() {
+        try {
+            const res = await fetch("/api/payment-options");
+            if (res.ok) {
+                const paymentOptions = await res.json();
+
+                // Populate filter dropdown
+                if (filterPaymentMethod) {
+                    filterPaymentMethod.innerHTML = '<option value="">All Payment Methods</option>';
+                    paymentOptions.forEach(po => {
+                        const opt = document.createElement("option");
+                        opt.value = po.name;
+                        opt.textContent = po.name;
+                        filterPaymentMethod.appendChild(opt);
+                    });
+                }
+
+                // Populate modal dropdown
+                if (modalPaymentMethod) {
+                    modalPaymentMethod.innerHTML = '<option value="" disabled selected>Select payment method...</option>';
+                    paymentOptions.forEach(po => {
+                        const opt = document.createElement("option");
+                        opt.value = po.name;
+                        opt.textContent = po.name;
+                        modalPaymentMethod.appendChild(opt);
+                    });
+                }
+            }
+        } catch (err) {
+            console.error("Failed to load payment options", err);
+        }
+    }
+
+    /**
      * Loads expenses from /api/expenses based on active filter criteria
      */
     async function loadExpenses() {
@@ -249,6 +297,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (filterPaymentMethod.value) params.append("paymentMethod", filterPaymentMethod.value);
         if (filterStartDate.value) params.append("startDate", filterStartDate.value);
         if (filterEndDate.value) params.append("endDate", filterEndDate.value);
+        if (filterMinAmount && filterMinAmount.value) params.append("minAmount", filterMinAmount.value);
+        if (filterMaxAmount && filterMaxAmount.value) params.append("maxAmount", filterMaxAmount.value);
 
         try {
             const res = await fetch(`/api/expenses?${params.toString()}`);
@@ -314,10 +364,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     ${exp.description ? escapeHtml(exp.description) : '<span class="text-muted fst-italic">No description</span>'}
                 </td>
                 <td class="text-end pe-4">
-                    <button class="btn btn-sm btn-outline-primary rounded-circle me-1 btn-edit" title="Edit" data-id="${exp.id}">
+                    <button class="btn btn-sm btn-outline-primary rounded-circle me-1 btn-edit" title="Edit" aria-label="Edit expense" data-id="${exp.id}">
                         <i class="bi bi-pencil"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline-danger rounded-circle btn-delete" title="Delete" data-id="${exp.id}">
+                    <button class="btn btn-sm btn-outline-danger rounded-circle btn-delete" title="Delete" aria-label="Delete expense" data-id="${exp.id}">
                         <i class="bi bi-trash"></i>
                     </button>
                 </td>
@@ -359,6 +409,8 @@ document.addEventListener("DOMContentLoaded", () => {
             filterPaymentMethod.value = "";
             filterStartDate.value = "";
             filterEndDate.value = "";
+            if (filterMinAmount) filterMinAmount.value = "";
+            if (filterMaxAmount) filterMaxAmount.value = "";
             loadExpenses();
         });
     }
@@ -372,6 +424,9 @@ document.addEventListener("DOMContentLoaded", () => {
             modalExpenseId.value = "";
             modalAlert.classList.add("d-none");
             expenseModalTitle.innerHTML = '<i class="bi bi-plus-circle me-2"></i>Add Expense';
+            if (btnSaveExpense) {
+                btnSaveExpense.innerHTML = '<i class="bi bi-plus-circle me-1"></i> Create Expense';
+            }
             // Default date to today
             modalDate.value = new Date().toISOString().split("T")[0];
             modalPaymentMethod.value = "UPI";
@@ -386,17 +441,60 @@ document.addEventListener("DOMContentLoaded", () => {
         expenseForm.reset();
         modalAlert.classList.add("d-none");
         expenseModalTitle.innerHTML = '<i class="bi bi-pencil-square me-2"></i>Edit Expense';
+        if (btnSaveExpense) {
+            btnSaveExpense.innerHTML = '<i class="bi bi-check2-circle me-1"></i> Update Expense';
+        }
 
         modalExpenseId.value = expense.id;
         modalAmount.value = expense.amount;
+
         if (expense.category && expense.category.id) {
-            modalCategory.value = expense.category.id;
+            const catIdStr = String(expense.category.id);
+            const matchedCat = [...modalCategory.options].find(opt => opt.value === catIdStr);
+            if (matchedCat) {
+                modalCategory.value = catIdStr;
+            } else {
+                const histCatOpt = document.createElement("option");
+                histCatOpt.value = catIdStr;
+                histCatOpt.textContent = `${expense.category.name || "Category " + catIdStr} (Historical)`;
+                modalCategory.appendChild(histCatOpt);
+                modalCategory.value = catIdStr;
+            }
         }
+
         modalDate.value = expense.date;
-        modalPaymentMethod.value = expense.paymentMethod;
+
+        // Ensure historical payment method option exists and matches case-insensitively
+        if (expense.paymentMethod) {
+            const pmVal = typeof expense.paymentMethod === "object" ? expense.paymentMethod.value : expense.paymentMethod;
+            if (pmVal) {
+                const matchedOpt = [...modalPaymentMethod.options].find(opt => opt.value.toLowerCase() === pmVal.toLowerCase());
+                if (matchedOpt) {
+                    modalPaymentMethod.value = matchedOpt.value;
+                } else {
+                    const histOpt = document.createElement("option");
+                    histOpt.value = pmVal;
+                    histOpt.textContent = `${pmVal} (Historical)`;
+                    modalPaymentMethod.appendChild(histOpt);
+                    modalPaymentMethod.value = pmVal;
+                }
+            }
+        }
         modalDescription.value = expense.description || "";
 
         expenseModal.show();
+    }
+
+    if (expenseModalEl) {
+        expenseModalEl.addEventListener("hidden.bs.modal", () => {
+            expenseForm.reset();
+            modalExpenseId.value = "";
+            modalAlert.classList.add("d-none");
+            expenseModalTitle.innerHTML = '<i class="bi bi-plus-circle me-2"></i>Add Expense';
+            if (btnSaveExpense) {
+                btnSaveExpense.innerHTML = '<i class="bi bi-plus-circle me-1"></i> Create Expense';
+            }
+        });
     }
 
     /**

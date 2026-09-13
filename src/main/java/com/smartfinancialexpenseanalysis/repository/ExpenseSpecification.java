@@ -5,6 +5,7 @@ import com.smartfinancialexpenseanalysis.entity.PaymentMethod;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,15 +17,7 @@ import java.util.List;
 public class ExpenseSpecification {
 
     /**
-     * Builds a specification combining ownership enforcement, search, and all filters.
-     *
-     * @param userId        ID of the authenticated user (mandatory)
-     * @param search        Search term for description (optional)
-     * @param categoryId    Category ID filter (optional)
-     * @param paymentMethod PaymentMethod filter (optional)
-     * @param startDate     Start date inclusive (optional)
-     * @param endDate       End date inclusive (optional)
-     * @return Specification representing the combined criteria
+     * Legacy 6-parameter filter method for backward compatibility.
      */
     public static Specification<Expense> filter(Long userId,
                                                 String search,
@@ -32,6 +25,30 @@ public class ExpenseSpecification {
                                                 PaymentMethod paymentMethod,
                                                 LocalDate startDate,
                                                 LocalDate endDate) {
+        return filter(userId, search, categoryId, paymentMethod, startDate, endDate, null, null);
+    }
+
+    /**
+     * Builds a specification combining ownership enforcement, search, and all filters including amount ranges.
+     *
+     * @param userId        ID of the authenticated user (mandatory)
+     * @param search        Search term for description (optional)
+     * @param categoryId    Category ID filter (optional)
+     * @param paymentMethod PaymentMethod filter (optional)
+     * @param startDate     Start date inclusive (optional)
+     * @param endDate       End date inclusive (optional)
+     * @param minAmount     Minimum amount inclusive (optional)
+     * @param maxAmount     Maximum amount inclusive (optional)
+     * @return Specification representing the combined criteria
+     */
+    public static Specification<Expense> filter(Long userId,
+                                                String search,
+                                                Long categoryId,
+                                                PaymentMethod paymentMethod,
+                                                LocalDate startDate,
+                                                LocalDate endDate,
+                                                BigDecimal minAmount,
+                                                BigDecimal maxAmount) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -61,6 +78,16 @@ public class ExpenseSpecification {
                 predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("date"), startDate));
             } else if (endDate != null) {
                 predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("date"), endDate));
+            }
+
+            // 6. Optional min amount filter
+            if (minAmount != null) {
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("amount"), minAmount));
+            }
+
+            // 7. Optional max amount filter
+            if (maxAmount != null) {
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("amount"), maxAmount));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

@@ -12,8 +12,10 @@ import com.smartfinancialexpenseanalysis.exception.BadRequestException;
 import com.smartfinancialexpenseanalysis.exception.ResourceNotFoundException;
 import com.smartfinancialexpenseanalysis.exception.UnauthorizedException;
 import com.smartfinancialexpenseanalysis.repository.CategoryRepository;
+import com.smartfinancialexpenseanalysis.entity.PaymentOption;
 import com.smartfinancialexpenseanalysis.repository.ExpenseRepository;
 import com.smartfinancialexpenseanalysis.repository.ExpenseSpecification;
+import com.smartfinancialexpenseanalysis.repository.PaymentOptionRepository;
 import com.smartfinancialexpenseanalysis.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -36,13 +39,16 @@ public class ExpenseService {
     private final ExpenseRepository expenseRepository;
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
+    private final PaymentOptionRepository paymentOptionRepository;
 
     public ExpenseService(ExpenseRepository expenseRepository,
                           CategoryRepository categoryRepository,
-                          UserRepository userRepository) {
+                          UserRepository userRepository,
+                          PaymentOptionRepository paymentOptionRepository) {
         this.expenseRepository = expenseRepository;
         this.categoryRepository = categoryRepository;
         this.userRepository = userRepository;
+        this.paymentOptionRepository = paymentOptionRepository;
     }
 
     /**
@@ -62,6 +68,8 @@ public class ExpenseService {
 
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+
+        validatePaymentOption(request.getPaymentMethod());
 
         String trimmedDescription = request.getDescription() != null ? request.getDescription().trim() : null;
 
@@ -101,14 +109,40 @@ public class ExpenseService {
                                             LocalDate endDate,
                                             Integer page,
                                             Integer size) {
+        return getExpenses(userEmail, search, categoryId, paymentMethod, startDate, endDate, null, null, page, size);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ExpenseResponse> getExpenses(String userEmail,
+                                            String search,
+                                            Long categoryId,
+                                            PaymentMethod paymentMethod,
+                                            LocalDate startDate,
+                                            LocalDate endDate,
+                                            BigDecimal minAmount,
+                                            BigDecimal maxAmount,
+                                            Integer page,
+                                            Integer size) {
         User user = getUserByEmail(userEmail);
 
         if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
             throw new BadRequestException("Start date cannot be after end date");
         }
 
+        if (minAmount != null && maxAmount != null && minAmount.compareTo(maxAmount) > 0) {
+            throw new BadRequestException("Minimum amount cannot be greater than maximum amount");
+        }
+
+        if (minAmount != null && minAmount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new BadRequestException("Minimum amount cannot be negative");
+        }
+
+        if (maxAmount != null && maxAmount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new BadRequestException("Maximum amount cannot be negative");
+        }
+
         Specification<Expense> spec = ExpenseSpecification.filter(
-                user.getId(), search, categoryId, paymentMethod, startDate, endDate
+                user.getId(), search, categoryId, paymentMethod, startDate, endDate, minAmount, maxAmount
         );
 
         Sort sort = Sort.by(Sort.Order.desc("date"), Sort.Order.desc("id"));
@@ -163,6 +197,8 @@ public class ExpenseService {
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
+        validatePaymentOption(request.getPaymentMethod());
+
         expense.setAmount(request.getAmount());
         expense.setCategory(category);
         expense.setDate(request.getDate());
@@ -171,6 +207,26 @@ public class ExpenseService {
 
         Expense updatedExpense = expenseRepository.save(expense);
         return mapToResponse(updatedExpense);
+    }
+
+    private void validatePaymentOption(PaymentMethod paymentMethod) {
+        if (paymentMethod == null || paymentMethod.getValue() == null || paymentMethod.getValue().trim().isEmpty()) {
+            throw new BadRequestException("Payment method is required");
+        }
+        String val = paymentMethod.getValue().trim();
+        Optional<PaymentOption> optionOpt = paymentOptionRepository.findByNameIgnoreCase(val);
+        if (optionOpt.isPresent()) {
+            if (!optionOpt.get().isActive()) {
+                throw new BadRequestException("Payment option '" + val + "' is inactive");
+            }
+        } else {
+            boolean isStandard = "CASH".equalsIgnoreCase(val) || "UPI".equalsIgnoreCase(val) ||
+                    "CARD".equalsIgnoreCase(val) || "BANK_TRANSFER".equalsIgnoreCase(val) ||
+                    "OTHER".equalsIgnoreCase(val);
+            if (!isStandard) {
+                throw new BadRequestException("Invalid payment option: " + val);
+            }
+        }
     }
 
     /**

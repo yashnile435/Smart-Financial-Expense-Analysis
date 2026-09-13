@@ -15,7 +15,7 @@
     <artifactId>smart-financial-expense-analysis</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>smart-financial-expense-analysis</name>
-    <description>Stage 1: Project setup for Smart Financial Expense Analysis</description>
+    <description>Smart Financial Expense Analysis - Full Stack Personal Finance Management Application</description>
 
     <properties>
         <java.version>21</java.version>
@@ -68,6 +68,13 @@
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <!-- OpenPDF for deterministic, local PDF document generation -->
+        <dependency>
+            <groupId>com.github.librepdf</groupId>
+            <artifactId>openpdf</artifactId>
+            <version>2.0.3</version>
         </dependency>
     </dependencies>
 

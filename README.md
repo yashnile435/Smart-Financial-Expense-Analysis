@@ -7,7 +7,7 @@ A modern, full-stack personal finance and expense analysis platform built with *
 ## Table of Contents
 1. [Project Name](#1-project-name)
 2. [Project Purpose](#2-project-purpose)
-3. [Current Project Status (Stage 5: Budget Management)](#3-current-project-status-stage-5-budget-management)
+3. [Current Project Status (Stage 10: Production Ready & Final Deployment)](#3-current-project-status-stage-10-production-ready--final-deployment)
 4. [Technology Stack](#4-technology-stack)
 5. [Required Software](#5-required-software)
 6. [Recommended Versions](#6-recommended-versions)
@@ -27,6 +27,14 @@ A modern, full-stack personal finance and expense analysis platform built with *
    - [19.1 Authentication Endpoints Specification](#191-authentication-endpoints-specification)
    - [19.2 Expense Management Endpoints Specification](#192-expense-management-endpoints-specification)
    - [19.3 Budget Management Endpoints Specification](#193-budget-management-endpoints-specification)
+   - [19.4 Financial Dashboard & Analytics Endpoints Specification](#194-financial-dashboard--analytics-endpoints-specification)
+   - [19.5 Reports & Export Endpoints Specification](#195-reports--export-endpoints-specification)
+   - [19.6 Admin Management Endpoints Specification](#196-admin-management-endpoints-specification)
+   - [19.7 Savings Goals Endpoints Specification](#197-savings-goals-endpoints-specification)
+   - [19.8 Recurring Expenses Endpoints Specification](#198-recurring-expenses-endpoints-specification)
+   - [19.9 Budget Alerts Endpoints Specification](#199-budget-alerts-endpoints-specification)
+   - [19.10 Analytics & Spending Comparison Endpoints Specification](#1910-analytics--spending-comparison-endpoints-specification)
+   - [19.11 User Profile & Password Endpoints Specification](#1911-user-profile--password-endpoints-specification)
 20. [Common Errors and Solutions](#20-common-errors-and-solutions)
 21. [Project Folder Structure](#21-project-folder-structure)
 22. [Future Modules (Roadmap)](#22-future-modules-roadmap)
@@ -47,11 +55,11 @@ The goal of **Smart Financial Expense Analysis** is to give users full control a
 - Define monthly and category budgets with real-time tracking.
 - Uncover spending trends and anomalies using deterministic statistical analysis.
 - View interactive dashboards, summaries, and financial reports.
-- Maintain full data privacy by running on self-hosted or dedicated infrastructure without dependence on external AI APIs or third-party data tracking.
+- Maintain full data privacy by running on self-hosted or dedicated infrastructure without dependence on third-party cloud data tracking.
 
 ---
 
-## 3. Current Project Status (Stage 5: Budget Management)
+## 3. Current Project Status (Stage 10: Production Ready & Final Deployment)
 This project follows a structured 10-stage iterative development model:
 
 * **Stage 1: Project Setup** (Completed)
@@ -90,7 +98,7 @@ This project follows a structured 10-stage iterative development model:
   - Dynamic responsive UI (`expenses.html`, `js/expenses.js`).
   - Comprehensive integration test suite (`ExpenseControllerIntegrationTest`) with 27 passing tests.
 
-* **Stage 5: Budget Management** (Active / Current)
+* **Stage 5: Budget Management** (Completed)
   - Monthly budget planning and spending limit allocation.
   - Database-level spending calculation across calendar months.
   - Deterministic financial metrics: Remaining budget, utilization percentage, status rules.
@@ -98,7 +106,104 @@ This project follows a structured 10-stage iterative development model:
   - Responsive UI with capped visual progress bar and history table (`budgets.html`, `js/budgets.js`).
   - Full integration test suite (`BudgetControllerIntegrationTest`) with 26 passing tests.
 
-* **Stages 6–10: Analytics, Dashboard, UI & Testing** (Upcoming)
+* **Stage 6: Financial Dashboard & Analytics** (Completed)
+  - Comprehensive summary KPI metrics: Total expenses, monthly expenses, counts, average, highest expense.
+  - Live budget vs spent tracking with progress bar and status.
+  - Visual breakdowns: Category spending, payment method distribution, and 6-month continuous timeline.
+  - Deterministic rule-based financial insights engine.
+  - Top 5 recent transactions table with deep-links to expense management.
+  - Responsive Bootstrap 5 + Chart.js interface (`dashboard.html`, `js/dashboard.js`).
+  - Full integration test suite (`DashboardControllerIntegrationTest`) with 20 passing tests.
+
+* **Stage 7: Reports & Financial Reporting** (Completed)
+  - Monthly and custom date-range financial reporting modules.
+  - Category-wise and payment-method spending breakdowns with percentage distributions.
+  - Budget vs actual spending comparison with status evaluations (`UNDER_BUDGET`, `NEAR_LIMIT`, `OVER_BUDGET`).
+  - Deterministic summary statistics: Total, transaction count, average (`RoundingMode.HALF_UP`), highest, lowest.
+  - Printable reports with dedicated `@media print` CSS styling.
+  - Local RFC 4180 CSV export with proper escaping and dynamic filename generation.
+  - In-memory PDF document generation powered by OpenPDF (`com.github.librepdf:openpdf`).
+  - Professional, responsive report UI (`reports.html`, `js/reports.js`).
+  - Strict multi-tenant data isolation and session authentication.
+  - Full integration test suite (`ReportControllerIntegrationTest`) with 32 passing tests.
+
+* **Stage 8: Admin Management** (Completed)
+  - Role-based authorization (`ROLE_ADMIN`) restricting `/api/admin/**` and the admin console.
+  - System overview dashboard: Total users, active users, total expenses, total expense amount, current month amount, total budgets, allocated budget target.
+  - User management: List users (`id DESC`), server-side case-insensitive search by name or email, safe profile views.
+  - Account status management: Enable/disable user accounts (`PUT /api/admin/users/{id}/status`), with immediate login rejection for disabled accounts.
+  - Role promotion & demotion: Change user roles (`PUT /api/admin/users/{id}/role`), with self-action protection and final-admin safety rules.
+  - Category management: Full CRUD (`GET`, `POST`, `PUT`, `DELETE`), trimmed uniqueness validation, and referential delete safety (blocks deletion with `409 Conflict` if expenses reference the category).
+  - System-wide financial analytics: Expense summary, budget status tracking, category spending distributions, payment method breakdowns, and 6-month continuous timeline.
+  - Responsive administrative interface (`admin.html`, `js/admin.js`) with dynamic navigation link visibility.
+  - Default administrator initializer (`admin@example.com` / `Admin@123`).
+  - Comprehensive integration test suite (`AdminControllerIntegrationTest`) with 21 passing tests.
+
+* **Stage 9: Advanced Features** (Completed)
+  - **Feature A: Spending Comparison**: Month-over-month, period-to-period, and category comparisons with difference amounts, percentage change, and directional flags (`INCREASED`, `DECREASED`, `NO_CHANGE`).
+  - **Feature B: Budget Alerts & Warning System**: Deterministic budget utilization monitoring (`NORMAL` <80%, `WARNING` 80-89%, `CRITICAL_WARNING` 90-99%, `EXCEEDED` >=100%) with actionable alerts across Dashboard and Budgets.
+  - **Feature C: Savings Goals & Contributions**: Financial goal management, progress tracking, remaining balance calculations, contributions (`POST /api/goals/{id}/contributions`), and automatic status transition to `COMPLETED`.
+  - **Feature D: Recurring Expenses**: Automated regular payment tracking across 4 frequencies (`DAILY`, `WEEKLY`, `MONTHLY`, `YEARLY`), start/end date enforcement, idempotent due generation, and duplicate prevention.
+  - **Feature E: User Profile & Settings**: Safe profile view, display name updating, and secure password changes requiring current password verification and BCrypt re-hashing.
+  - **Feature F: Advanced Expense Filtering & Analytics**: Combined filters (search, category, payment method, date range, min amount, max amount) with strict range validation (`minAmount <= maxAmount`), plus advanced analytics KPIs (largest expense, average daily spending, highest spending category).
+  - **Feature G: UI/UX Improvements**: Dedicated frontend pages (`goals.html`, `recurring-expenses.html`, `profile.html`), redesigned dashboard with Quick Actions, active budget alert banners, spending comparison widget, and live goal progress cards.
+  - **Security & Multi-Tenancy**: Strict ownership enforcement across all endpoints (`ROLE_USER` cannot access another user's goals, recurring expenses, or alerts).
+  - **Full Test Suite**: 163 passing unit and integration tests with zero failures or errors.
+
+* **Stage 10: Final QA, Security, Portability & Deployment** (Completed)
+  - Comprehensive end-to-end security audit: BCrypt password hashing, session-based authentication, strict multi-tenant isolation with zero IDOR exposure, and role privilege protection.
+  - Production administrator bootstrap secured via optional environment variables (`INITIAL_ADMIN_EMAIL`, `INITIAL_ADMIN_PASSWORD`), eliminating all hardcoded default credentials.
+  - Financial & date calculation safety audited: 100% `BigDecimal` with explicit `RoundingMode.HALF_UP` on all division operations, zero division guards, and safe month boundary transitions.
+  - Portable Spring-managed scheduler (`@Scheduled`) for recurring expenses independent of any operating-system-specific schedulers.
+  - Complete regression verification: 163 tests run, 163 passed, 0 failures, 0 errors, 0 skipped (`BUILD SUCCESS`).
+  - Production packaging verified (`target/smart-financial-expense-analysis-0.0.1-SNAPSHOT.jar`).
+  - Comprehensive end-to-end runtime verification passed across all modules and user journeys.
+  - Complete academic submission readiness for MCA project evaluation.
+
+---
+
+## 3.1 Role Architecture & Master Data Management
+
+### Role Responsibilities
+
+The application enforces strict separation of concerns between two distinct roles:
+
+| Role | Responsibilities | Permitted Modules & Access | Forbidden Modules |
+| :--- | :--- | :--- | :--- |
+| **`USER`** | Personal Financial Management | • Dashboard & Summary<br>• Expenses (CRUD)<br>• Budgets (CRUD)<br>• Financial Reports & Exports<br>• Savings Goals & Contributions<br>• Recurring Expenses<br>• Profile & Password<br>• Spending Analytics & Comparison | • Admin Console (`/admin.html`)<br>• User Management (`/api/admin/users/**`)<br>• Category Master Data Mutation (`/api/admin/categories/**`)<br>• Payment Option Mutation (`/api/admin/payment-options/**`)<br>• System Aggregate Analytics (`/api/admin/summary`, `/api/admin/analytics/**`) |
+| **`ADMIN`** | System Administration & Master Data | • Admin Dashboard (`/admin.html`)<br>• User Status & Role Administration<br>• Category Master Data Management<br>• Payment Option Master Data Management<br>• System Aggregate Analytics<br>• Own Profile & Password | • Personal Expenses (`/api/expenses/**`)<br>• Personal Budgets (`/api/budgets/**`)<br>• Savings Goals (`/api/goals/**`)<br>• Recurring Expenses (`/api/recurring-expenses/**`)<br>• Personal Reports (`/api/reports/**`)<br>• Personal Dashboard Calculations (`/api/dashboard/**`) |
+
+### Master Data Architecture
+
+1. **Expense Categories (`categories` table)**:
+   - Seeded with default minimum categories in `database/schema.sql` and startup runner: `Food`, `Travel`, `Shopping`, `Bills`, `Education`, `Entertainment`, `Health`, `Rent`, `Utilities`, `Other`.
+   - Admin can add, update, and safely delete categories.
+   - **Referential Integrity**: Categories referenced by existing expenses cannot be deleted (`409 Conflict`).
+   - Normal users retrieve available categories via `GET /api/categories` for expense entry.
+
+2. **Payment Options (`payment_options` table)**:
+   - Seeded with default minimum payment channels in `database/schema.sql`: `Cash`, `UPI`, `Credit Card`, `Debit Card`, `Net Banking`, `Bank Transfer`, `Other`.
+   - Admin can add new payment options, edit descriptions, and toggle active status (`PATCH /api/admin/payment-options/{id}/status`).
+   - **Referential Integrity & Safe Deactivation**: If a payment option is referenced by existing transactions, deleting it safely deactivates it (`active = false`) rather than breaking foreign references. Historical financial records remain 100% readable and intact.
+   - **Extensible Value Object**: `PaymentMethod` is implemented as an extensible value object with JPA converter, allowing administrators to add custom payment options (e.g. *Digital Wallet*) directly via the Admin Console without modifying Java source code or recompiling.
+   - Normal users retrieve active payment options dynamically via `GET /api/payment-options`.
+
+3. **Authentication Routing & Navigation**:
+   - Following login:
+     - `USER` is routed directly to `/dashboard.html`.
+     - `ADMIN` is routed directly to `/admin.html`.
+   - Navigation bars are cleanly isolated:
+     - The Admin Navbar displays only brand identity, Admin Console, and Logout.
+     - Personal financial modules are completely omitted from the Admin UI experience.
+
+4. **Initial Administrator Setup**:
+   - Development / Demo administrator credentials:
+     - **Email**: `admin@example.com`
+     - **Password**: `Admin@123`
+     - Stored strictly as a secure BCrypt hash (`$2a$10$QOVBux01SNAs1.XY0cW5HehVIQ78jh5Lnq81gyFEtKJJ5Vtqqki22`) in `database/schema.sql`.
+   - Production deployments can override the initial administrator account via environment variables:
+     - `INITIAL_ADMIN_EMAIL=your_admin@yourdomain.com`
+     - `INITIAL_ADMIN_PASSWORD=YourSecurePassword123!`
 
 ---
 
@@ -108,8 +213,9 @@ This project follows a structured 10-stage iterative development model:
 - `id` (BIGINT, Primary Key, Auto-Increment)
 - `name` (VARCHAR(100), Required)
 - `email` (VARCHAR(150), Unique, Required, Valid Email format)
-- `password` (VARCHAR(255), Required)
+- `password` (VARCHAR(255), Required, BCrypt-hashed)
 - `role` (`Role` Enum: `USER`, `ADMIN`, stored as VARCHAR)
+- `enabled` (BOOLEAN, Required, Default: true, manages account activation status)
 
 #### 2. `Category` Entity (`categories` table)
 - `id` (BIGINT, Primary Key, Auto-Increment)
@@ -133,6 +239,32 @@ This project follows a structured 10-stage iterative development model:
 - `amount` (DECIMAL(12, 2), Positive, Required)
 - **Constraint**: Unique on `(user_id, month, year)` — ensures one budget allocation per user per calendar month.
 
+#### 5. `SavingsGoal` Entity (`savings_goals` table)
+- `id` (BIGINT, Primary Key, Auto-Increment)
+- `user` (Many-to-One with `User`, Foreign Key `user_id`, Required)
+- `name` (VARCHAR(150), Required)
+- `description` (VARCHAR(255), Optional)
+- `targetAmount` (DECIMAL(12, 2), Positive, Required)
+- `currentAmount` (DECIMAL(12, 2), Min 0, Required)
+- `targetDate` (DATE, Optional)
+- `status` (`SavingsGoalStatus` Enum: `ACTIVE`, `COMPLETED`, `CANCELLED`, Required)
+- `createdAt`, `updatedAt` (TIMESTAMP)
+
+#### 6. `RecurringExpense` Entity (`recurring_expenses` table)
+- `id` (BIGINT, Primary Key, Auto-Increment)
+- `user` (Many-to-One with `User`, Foreign Key `user_id`, Required)
+- `category` (Many-to-One with `Category`, Foreign Key `category_id`, Required)
+- `amount` (DECIMAL(12, 2), Positive, Required)
+- `description` (VARCHAR(255), Optional)
+- `paymentMethod` (`PaymentMethod` Enum: `CASH`, `UPI`, `CARD`, `BANK_TRANSFER`, `OTHER`, Required)
+- `frequency` (`RecurrenceFrequency` Enum: `DAILY`, `WEEKLY`, `MONTHLY`, `YEARLY`, Required)
+- `startDate` (DATE, Required)
+- `endDate` (DATE, Optional)
+- `nextOccurrence` (DATE, Required)
+- `lastGeneratedDate` (DATE, Optional)
+- `active` (BOOLEAN, Required, Default: true)
+- `createdAt`, `updatedAt` (TIMESTAMP)
+
 ---
 
 ## 4. Technology Stack
@@ -144,7 +276,8 @@ This project follows a structured 10-stage iterative development model:
 - **Build System**: Maven 3.9+ with bundled Maven Wrapper (`mvnw` / `mvnw.cmd`)
 - **Frontend**: HTML5, CSS3, JavaScript (Vanilla ES6+), Bootstrap 5.3, Bootstrap Icons
 - **Database**: MySQL 8.x / MariaDB 10.x
-- **Zero Third-Party AI / Zero Cloud API Keys**: Fully deterministic, local, and private.
+- **PDF Generation**: OpenPDF 2.0.3 (`com.github.librepdf:openpdf`) for in-memory, deterministic PDF export
+- **Architecture**: Self-contained, portable, and privacy-first.
 
 ---
 
@@ -716,8 +849,8 @@ All expense endpoints require an active authenticated session (`JSESSIONID`). Al
 All budget endpoints require an authenticated Spring Security session (`JSESSIONID`). The system enforces strict user ownership: users can only view, create, update, or delete their own monthly budgets. Accessing or modifying another user's budget returns `404 Not Found` to prevent entity enumeration.
 
 > [!NOTE]
-> **Deterministic Rule-Based Calculations (No AI / No Machine Learning)**:
-> All financial metrics (total expenses, remaining amount, utilization percentage, and status) are calculated using exact arithmetic (`BigDecimal` with `HALF_UP` rounding) and rule-based thresholds. There is **no external AI, no machine learning, and no external API key** involved.
+> **Deterministic Financial Calculations**:
+> All financial metrics (total expenses, remaining amount, utilization percentage, and status) are calculated using exact arithmetic (`BigDecimal` with `HALF_UP` rounding) and rule-based thresholds.
 
 ### Financial Formulas
 ```
@@ -873,6 +1006,439 @@ utilizationPercentage = (totalExpenses / budgetAmount) × 100
 
 ---
 
+## 19.4 Financial Dashboard & Analytics Endpoints Specification
+
+All dashboard endpoints require an authenticated Spring Security session (`JSESSIONID`). The system enforces strict multi-tenant data isolation: all aggregations, breakdowns, 6-month trends, recent transactions, and financial insights are calculated **strictly** from the authenticated user's records. User B can never observe or deduce User A's financial statistics.
+
+> [!NOTE]
+> **Deterministic Financial Analytics**:
+> Stage 6 uses algorithmic financial calculations. All metrics and insights are generated using standard business logic and `BigDecimal` financial arithmetic.
+
+### 1. Get Financial Dashboard Summary
+- **Method**: `GET`
+- **Path**: `/api/dashboard/summary`
+- **Authentication**: Required (`JSESSIONID`)
+- **Query Parameters**: None. The authenticated user identity is resolved securely from the server session.
+- **Response** (`200 OK`):
+  ```json
+  {
+    "currentMonth": 9,
+    "currentYear": 2026,
+    "totalExpenses": 45000.00,
+    "currentMonthExpenses": 14500.00,
+    "expenseCount": 25,
+    "currentMonthExpenseCount": 8,
+    "averageExpense": 1800.00,
+    "highestExpense": 8500.00,
+    "currentMonthBudget": 20000.00,
+    "currentMonthRemaining": 5500.00,
+    "currentMonthUtilization": 72.50,
+    "currentMonthBudgetStatus": "UNDER_BUDGET",
+    "categoryBreakdown": [
+      {
+        "categoryId": 1,
+        "categoryName": "Food",
+        "totalAmount": 20000.00,
+        "percentage": 44.44
+      },
+      {
+        "categoryId": 2,
+        "categoryName": "Travel",
+        "totalAmount": 15000.00,
+        "percentage": 33.33
+      },
+      {
+        "categoryId": 3,
+        "categoryName": "Shopping",
+        "totalAmount": 10000.00,
+        "percentage": 22.22
+      }
+    ],
+    "paymentMethodBreakdown": [
+      {
+        "paymentMethod": "UPI",
+        "totalAmount": 25000.00,
+        "percentage": 55.56
+      },
+      {
+        "paymentMethod": "CARD",
+        "totalAmount": 15000.00,
+        "percentage": 33.33
+      },
+      {
+        "paymentMethod": "CASH",
+        "totalAmount": 5000.00,
+        "percentage": 11.11
+      }
+    ],
+    "monthlyTrend": [
+      { "month": 4, "year": 2026, "totalAmount": 5200.00 },
+      { "month": 5, "year": 2026, "totalAmount": 6100.00 },
+      { "month": 6, "year": 2026, "totalAmount": 7400.00 },
+      { "month": 7, "year": 2026, "totalAmount": 5900.00 },
+      { "month": 8, "year": 2026, "totalAmount": 5900.00 },
+      { "month": 9, "year": 2026, "totalAmount": 14500.00 }
+    ],
+    "recentExpenses": [
+      {
+        "id": 42,
+        "amount": 4500.00,
+        "categoryName": "Food",
+        "paymentMethod": "UPI",
+        "date": "2026-09-12",
+        "description": "Family dinner"
+      }
+    ],
+    "financialInsights": [
+      {
+        "type": "UNDER_BUDGET",
+        "title": "Budget Under Control",
+        "message": "Your current spending is below 80% of your monthly budget."
+      },
+      {
+        "type": "SPENDING_INCREASED",
+        "title": "Spending Increased",
+        "message": "Your spending increased compared with the previous month."
+      }
+    ]
+  }
+  ```
+
+---
+
+### Rule-Based Financial Insights Engine
+The dashboard generates rule-based insights based on the user's spending patterns:
+
+| Rule Type | Title | Trigger Condition |
+| :--- | :--- | :--- |
+| `NO_DATA` | *No Expenses Yet* | `expenseCount == 0` |
+| `OVER_BUDGET` | *Budget Exceeded* | Current month budget utilization > 100.00% |
+| `NEAR_LIMIT` | *Budget Near Limit* | Current month budget utilization between 80.00% and 100.00% |
+| `UNDER_BUDGET` | *Budget Under Control* | Current month budget utilization < 80.00% |
+| `CATEGORY_CONCENTRATION` | *High Category Spending* | A single category accounts for > 50.00% of total spending |
+| `SPENDING_INCREASED` | *Spending Increased* | Current calendar month spending > previous calendar month |
+| `SPENDING_REDUCED` | *Spending Reduced* | Current calendar month spending < previous calendar month |
+
+---
+
+## 19.5 Reports & Export Endpoints Specification
+
+All reporting endpoints enforce user session authentication and strict data isolation.
+
+### 1. Monthly Financial Report
+- **Method**: `GET`
+- **Path**: `/api/reports/monthly?month={month}&year={year}`
+- **Security**: Authenticated session (`JSESSIONID`)
+
+### 2. Custom Date-Range Financial Report
+- **Method**: `GET`
+- **Path**: `/api/reports/date-range?startDate={YYYY-MM-DD}&endDate={YYYY-MM-DD}`
+- **Security**: Authenticated session (`JSESSIONID`)
+
+### 3. Category Spending Breakdown
+- **Method**: `GET`
+- **Path**: `/api/reports/category?month={month}&year={year}`
+
+### 4. Payment Method Spending Breakdown
+- **Method**: `GET`
+- **Path**: `/api/reports/payment-method?month={month}&year={year}`
+
+### 5. Budget vs Actual Comparison
+- **Method**: `GET`
+- **Path**: `/api/reports/budget-vs-actual?month={month}&year={year}`
+
+### 6. CSV Export (RFC 4180)
+- **Method**: `GET`
+- **Path**: `/api/reports/export/csv?month={month}&year={year}`
+- **Content-Type**: `text/csv; charset=UTF-8`
+
+### 7. PDF Export (OpenPDF)
+- **Method**: `GET`
+- **Path**: `/api/reports/export/pdf?month={month}&year={year}`
+- **Content-Type**: `application/pdf`
+
+---
+
+## 19.6 Admin Management Endpoints Specification
+
+All administrative endpoints are strictly protected under `/api/admin/**` and require `ROLE_ADMIN`. Unauthenticated requests receive `401 Unauthorized`. Authenticated non-admin users (`ROLE_USER`) receive `403 Forbidden`.
+
+### 1. System Overview Summary
+- **Method**: `GET`
+- **Path**: `/api/admin/summary`
+- **Security**: Restricted to `ROLE_ADMIN`
+- **Response** (`200 OK`):
+  ```json
+  {
+    "totalUsers": 12,
+    "activeUsers": 11,
+    "totalExpenses": 85,
+    "totalExpenseAmount": 142500.00,
+    "currentMonthExpenseAmount": 28400.00,
+    "totalBudgets": 15,
+    "totalBudgetAmount": 350000.00
+  }
+  ```
+
+### 2. User Management & Server-Side Search
+- **Method**: `GET`
+- **Path**: `/api/admin/users` or `/api/admin/users?search={nameOrEmail}`
+- **Security**: Restricted to `ROLE_ADMIN`
+- **Response** (`200 OK`): Returns list of users sorted `id DESC`. Passwords and hashes are never exposed.
+  ```json
+  [
+    {
+      "id": 1,
+      "name": "System Administrator",
+      "email": "admin@example.com",
+      "role": "ADMIN",
+      "enabled": true
+    }
+  ]
+  ```
+
+### 3. User Details
+- **Method**: `GET`
+- **Path**: `/api/admin/users/{id}`
+- **Security**: Restricted to `ROLE_ADMIN`
+
+### 4. User Status Activation / Deactivation
+- **Method**: `PUT`
+- **Path**: `/api/admin/users/{id}/status`
+- **Security**: Restricted to `ROLE_ADMIN`
+- **Request Body**:
+  ```json
+  {
+    "enabled": false
+  }
+  ```
+- **Safety Rules**:
+  - Administrators cannot disable their own account (`400 Bad Request`).
+  - Cannot disable the last remaining active administrator (`400 Bad Request`).
+  - Disabled users are blocked from authentication immediately (`401 Unauthorized`).
+
+### 5. Role Management (Promotion / Demotion)
+- **Method**: `PUT`
+- **Path**: `/api/admin/users/{id}/role`
+- **Security**: Restricted to `ROLE_ADMIN`
+- **Request Body**:
+  ```json
+  {
+    "role": "ADMIN"
+  }
+  ```
+- **Safety Rules**:
+  - Administrators cannot demote their own account (`400 Bad Request`).
+  - Cannot demote the last remaining active administrator (`400 Bad Request`).
+
+### 6. Category Administration (CRUD & Delete Safety)
+- **List Categories**: `GET /api/admin/categories` (`200 OK`)
+- **Create Category**: `POST /api/admin/categories` (`201 Created`)
+  - Request: `{"name": "Subscriptions", "description": "Streaming and digital services"}`
+  - Uniqueness: Duplicate category names are rejected with `409 Conflict`.
+- **Update Category**: `PUT /api/admin/categories/{id}` (`200 OK`)
+- **Delete Category**: `DELETE /api/admin/categories/{id}`
+  - **Referential Delete Safety**: If any expenses currently reference the category, deletion is blocked with `409 Conflict` and message: `"Category cannot be deleted because expenses are using it."` Unreferenced categories are deleted cleanly (`200 OK`).
+
+### 7. System-Wide Financial Overviews & Aggregate Analytics
+- **Expense Summary**: `GET /api/admin/expenses/summary`
+  - Returns total expense amount, total count, average expense, highest expense, and current month amount.
+- **Budget Health Overview**: `GET /api/admin/budgets/summary`
+  - Returns total budgets, total allocated amount, average budget, and status distribution (`budgetsUnderBudget`, `budgetsNearLimit`, `budgetsOverBudget`).
+- **Category Analytics**: `GET /api/admin/analytics/categories`
+  - Returns category name, total amount, transaction count, and percentage share.
+- **Payment Method Analytics**: `GET /api/admin/analytics/payment-methods`
+  - Returns payment method, total amount, transaction count, and percentage share.
+- **Monthly Spending Trends**: `GET /api/admin/analytics/monthly?months=6`
+  - Returns 6 continuous months in chronological order including months with zero transactions.
+
+---
+
+## 19.7 Savings Goals Endpoints Specification
+
+Protected endpoints for managing savings goals and contributions. Requires active authentication (`ROLE_USER` or `ROLE_ADMIN`). Multi-tenant data isolation is strictly enforced.
+
+### 1. List User's Savings Goals
+- **Method**: `GET`
+- **Path**: `/api/goals`
+- **Response** (`200 OK`): Array of goals owned by authenticated user.
+
+### 2. Create Savings Goal
+- **Method**: `POST`
+- **Path**: `/api/goals`
+- **Request Body**:
+  ```json
+  {
+    "name": "New Laptop",
+    "description": "Work & Gaming laptop",
+    "targetAmount": 85000.00,
+    "currentAmount": 25000.00,
+    "targetDate": "2027-03-01"
+  }
+  ```
+- **Validation**:
+  - `name`: Required, max 150 characters.
+  - `targetAmount`: Required, > 0.
+  - `currentAmount`: Optional, >= 0.
+  - `targetDate`: Optional.
+
+### 3. Get Goal by ID
+- **Method**: `GET`
+- **Path**: `/api/goals/{id}`
+- **Response** (`200 OK`): Goal details including `remainingAmount`, `progressPercentage`, and `status`. Returns `404 Not Found` if goal belongs to another user.
+
+### 4. Update Goal
+- **Method**: `PUT`
+- **Path**: `/api/goals/{id}`
+- **Request Body**: Same fields as creation plus optional `status` (`ACTIVE`, `COMPLETED`, `CANCELLED`).
+
+### 5. Delete Goal
+- **Method**: `DELETE`
+- **Path**: `/api/goals/{id}`
+- **Response** (`200 OK`): Returns `{"success": true, "message": "Savings goal deleted successfully"}`.
+
+### 6. Add Goal Contribution
+- **Method**: `POST`
+- **Path**: `/api/goals/{id}/contributions`
+- **Request Body**:
+  ```json
+  {
+    "amount": 5000.00
+  }
+  ```
+- **Behavior**: Incrementally increases `currentAmount`. When `currentAmount >= targetAmount`, status transitions automatically to `COMPLETED`.
+
+---
+
+## 19.8 Recurring Expenses Endpoints Specification
+
+Protected endpoints for automated regular expense tracking. Frequencies supported: `DAILY`, `WEEKLY`, `MONTHLY`, `YEARLY`.
+
+### 1. List Recurring Expenses
+- **Method**: `GET`
+- **Path**: `/api/recurring-expenses`
+
+### 2. Create Recurring Expense
+- **Method**: `POST`
+- **Path**: `/api/recurring-expenses`
+- **Request Body**:
+  ```json
+  {
+    "categoryId": 1,
+    "amount": 1499.00,
+    "description": "Broadband Internet",
+    "paymentMethod": "UPI",
+    "frequency": "MONTHLY",
+    "startDate": "2026-09-01",
+    "endDate": "2027-09-01"
+  }
+  ```
+
+### 3. Update Recurring Expense
+- **Method**: `PUT`
+- **Path**: `/api/recurring-expenses/{id}`
+
+### 4. Delete Recurring Expense
+- **Method**: `DELETE`
+- **Path**: `/api/recurring-expenses/{id}`
+
+### 5. Trigger Due Generation
+- **Method**: `POST`
+- **Path**: `/api/recurring-expenses/{id}/generate`
+- **Behavior**: Generates an expense if `nextOccurrence <= today`. Advances `nextOccurrence` according to frequency. Idempotent — will not duplicate the same occurrence.
+
+---
+
+## 19.9 Budget Alerts Endpoints Specification
+
+Dynamic warning system evaluating budget utilization percentages for the authenticated user.
+
+### 1. Get Active Budget Alerts
+- **Method**: `GET`
+- **Path**: `/api/budgets/alerts` or `/api/budgets/alerts?month={m}&year={y}`
+- **Response** (`200 OK`):
+  ```json
+  [
+    {
+      "budgetId": 5,
+      "month": 9,
+      "year": 2026,
+      "budgetAmount": 10000.00,
+      "spentAmount": 8500.00,
+      "remainingAmount": 1500.00,
+      "utilizationPercentage": 85.00,
+      "alertLevel": "WARNING",
+      "message": "You have used 85% of your monthly budget (spending approaching limit)."
+    }
+  ]
+  ```
+- **Alert Levels**:
+  - `NORMAL`: 0% - 79.99%
+  - `WARNING`: 80% - 89.99%
+  - `CRITICAL_WARNING`: 90% - 99.99%
+  - `EXCEEDED`: 100%+
+
+---
+
+## 19.10 Analytics & Spending Comparison Endpoints Specification
+
+### 1. Spending Comparison
+- **Method**: `GET`
+- **Path**: `/api/analytics/comparison?month={m}&year={y}&comparisonMonth={cm}&comparisonYear={cy}`
+- **Default Behavior**: Defaults to current month vs previous month when parameters are omitted.
+- **Response** (`200 OK`):
+  ```json
+  {
+    "currentPeriod": "2026-09",
+    "currentPeriodTotal": 25000.00,
+    "comparisonPeriod": "2026-08",
+    "comparisonPeriodTotal": 20000.00,
+    "difference": 5000.00,
+    "percentageChange": 25.00,
+    "direction": "INCREASED",
+    "categoryComparisons": []
+  }
+  ```
+
+### 2. Advanced Analytics
+- **Method**: `GET`
+- **Path**: `/api/analytics/advanced?month={m}&year={y}`
+- **Response** (`200 OK`): Returns `largestExpenseAmount`, `averageDailySpending`, `averageMonthlySpending`, `highestSpendingCategoryName`, `lowestSpendingCategoryName`, `totalTransactions`, and `totalAmount`.
+
+---
+
+## 19.11 User Profile & Password Endpoints Specification
+
+### 1. Get Current User Profile
+- **Method**: `GET`
+- **Path**: `/api/profile`
+- **Response** (`200 OK`): Safe profile containing `id`, `name`, `email`, `role`, and `enabled`. Never exposes password hash.
+
+### 2. Update Display Name
+- **Method**: `PUT`
+- **Path**: `/api/profile`
+- **Request Body**:
+  ```json
+  {
+    "name": "Jane Doe"
+  }
+  ```
+
+### 3. Change Password
+- **Method**: `PUT`
+- **Path**: `/api/profile/password`
+- **Request Body**:
+  ```json
+  {
+    "currentPassword": "OldPassword123",
+    "newPassword": "NewPassword456",
+    "confirmPassword": "NewPassword456"
+  }
+  ```
+- **Validation**: Verifies current password against database BCrypt hash. Validates minimum length (6 chars) and confirmation match.
+
+---
+
 ## 20. Common Errors and Solutions
 
 ### 1. Error: `Port 8080 was already in use`
@@ -941,30 +1507,58 @@ Smart Financial Expense Analysis/
     │   │           │   ├── CategoryDataInitializer.java               # Seeds default categories idempotently
     │   │           │   ├── CustomAuthenticationEntryPoint.java        # 401 JSON handler for unauthenticated requests
     │   │           │   ├── CustomAccessDeniedHandler.java             # 403 JSON handler for forbidden requests
-    │   │           │   └── CorsConfig.java                            # CORS configuration
+    │   │           │   ├── CorsConfig.java                            # CORS configuration
+    │   │           │   └── AdminDataInitializer.java                  # Seeds default administrator account idempotently
     │   │           ├── controller/
     │   │           │   ├── AuthController.java                        # Auth endpoints (register, login, logout, me)
+    │   │           │   ├── AdminController.java                       # Stage 8 Admin endpoints (/api/admin/**)
     │   │           │   ├── AdminTestController.java                   # Protected endpoint for ADMIN role verification
-    │   │           │   ├── CategoryController.java                    # Category endpoints (/api/categories)
+    │   │           │   ├── CategoryController.java                    # Public category endpoints (/api/categories)
     │   │           │   ├── ExpenseController.java                     # Stage 4 Expense CRUD & Filter endpoints (/api/expenses)
     │   │           │   ├── BudgetController.java                      # Stage 5 Budget CRUD & Calculation endpoints (/api/budgets)
+    │   │           │   ├── DashboardController.java                   # Stage 6 Dashboard & Analytics summary endpoint (/api/dashboard/summary)
+    │   │           │   ├── ReportController.java                      # Stage 7 Reports & Export endpoints (/api/reports/**)
     │   │           │   └── HealthController.java                      # Health check REST controller (/api/health)
     │   │           ├── dto/                                           # Data Transfer Objects
     │   │           │   ├── RegisterRequest.java                       # Name, email, password
     │   │           │   ├── LoginRequest.java                          # Email, password
     │   │           │   ├── UserResponse.java                          # Safe user profile (id, name, email, role)
-    │   │           │   ├── AuthResponse.java                          # Success, message, UserResponse
-    │   │           │   ├── ApiResponse.java                           # Uniform JSON status response
+    │   │           │   ├── AdminUserResponse.java                     # Admin user view (id, name, email, role, enabled)
+    │   │           │   ├── UpdateUserStatusRequest.java               # Enabled status request
+    │   │           │   ├── UpdateUserRoleRequest.java                 # Role update request
+    │   │           │   ├── AdminSummaryResponse.java                  # System overview counters & totals
+    │   │           │   ├── AdminExpenseSummaryResponse.java           # System expense statistics (avg, max, month total)
+    │   │           │   ├── AdminBudgetSummaryResponse.java            # System budget status statistics
+    │   │           │   ├── AdminCategoryAnalyticsResponse.java        # System category distribution
+    │   │           │   ├── AdminPaymentMethodAnalyticsResponse.java   # System payment method distribution
+    │   │           │   ├── AdminMonthlyAnalyticsResponse.java         # 6-month continuous timeline
+    │   │           │   ├── CategoryRequest.java                       # Category name and description
     │   │           │   ├── CategoryResponse.java                      # Safe category details
     │   │           │   ├── ExpenseRequest.java                        # Amount, categoryId, date, paymentMethod, desc
     │   │           │   ├── ExpenseResponse.java                       # Safe expense details with nested CategoryResponse
     │   │           │   ├── BudgetRequest.java                         # Month, year, amount
-    │   │           │   └── BudgetResponse.java                        # Budget amount, total expenses, remaining, utilization, status
+    │   │           │   ├── BudgetResponse.java                        # Budget amount, total expenses, remaining, utilization, status
+    │   │           │   ├── CategoryExpenseResponse.java               # Category spending aggregation and percentage
+    │   │           │   ├── PaymentMethodExpenseResponse.java          # Payment method spending aggregation and percentage
+    │   │           │   ├── MonthlyExpenseResponse.java                # Monthly timeline spending aggregation
+    │   │           │   ├── RecentExpenseResponse.java                 # Top recent expense items
+    │   │           │   ├── InsightResponse.java                       # Deterministic rule-based financial insight
+    │   │           │   ├── DashboardResponse.java                     # Unified dashboard summary payload
+    │   │           │   ├── ReportSummaryResponse.java                 # Report summary statistics DTO
+    │   │           │   ├── CategoryReportResponse.java                # Report category breakdown DTO
+    │   │           │   ├── PaymentMethodReportResponse.java           # Report payment method breakdown DTO
+    │   │           │   ├── BudgetComparisonResponse.java              # Report budget vs actual comparison DTO
+    │   │           │   ├── ExpenseReportItemResponse.java             # Individual report expense item DTO
+    │   │           │   └── FinancialReportResponse.java               # Comprehensive report container DTO
     │   │           ├── entity/                                        # Core JPA Domain Entities & Enums
-    │   │           │   ├── User.java                                  # User entity (role, unique email, BCrypt password)
+    │   │           │   ├── User.java                                  # User entity (role, unique email, enabled, BCrypt password)
     │   │           │   ├── Category.java                              # Category entity (unique name)
     │   │           │   ├── Expense.java                               # Expense entity (user, category, amount)
     │   │           │   ├── Budget.java                                # Budget entity (user, month, year, amount)
+    │   │           │   ├── SavingsGoal.java                           # Savings goal entity (target, current, targetDate, status)
+    │   │           │   ├── SavingsGoalStatus.java                     # SavingsGoalStatus enum (ACTIVE, COMPLETED, CANCELLED)
+    │   │           │   ├── RecurringExpense.java                      # Recurring expense entity (frequency, nextOccurrence)
+    │   │           │   ├── RecurrenceFrequency.java                   # RecurrenceFrequency enum (DAILY, WEEKLY, MONTHLY, YEARLY)
     │   │           │   ├── Role.java                                  # Role enum (USER, ADMIN)
     │   │           │   ├── PaymentMethod.java                         # PaymentMethod enum (CASH, UPI, etc.)
     │   │           │   └── BudgetStatus.java                          # BudgetStatus enum (UNDER_BUDGET, NEAR_LIMIT, OVER_BUDGET)
@@ -975,39 +1569,71 @@ Smart Financial Expense Analysis/
     │   │           │   ├── BadRequestException.java                   # 400 Bad Request
     │   │           │   └── GlobalExceptionHandler.java                # Uniform @RestControllerAdvice JSON handler
     │   │           ├── repository/                                    # Spring Data JPA Repositories
-    │   │           │   ├── UserRepository.java                        # User queries (findByEmail, etc.)
-    │   │           │   ├── CategoryRepository.java                    # Category queries (findByName, etc.)
-    │   │           │   ├── ExpenseRepository.java                     # Expense queries, sum aggregation, specification executor
-    │   │           │   ├── ExpenseSpecification.java                  # Dynamic specifications with ownership enforcement
-    │   │           │   └── BudgetRepository.java                      # Budget queries (user, month, year, ordering)
+    │   │           │   ├── UserRepository.java                        # User queries (findByEmail, countByEnabledTrue, etc.)
+    │   │           │   ├── CategoryRepository.java                    # Category queries (findByName, existsByNameIgnoreCase, etc.)
+    │   │           │   ├── ExpenseRepository.java                     # Expense queries, sum aggregation, system-wide queries
+    │   │           │   ├── ExpenseSpecification.java                  # Dynamic specifications with amount, category & date filters
+    │   │           │   ├── BudgetRepository.java                      # Budget queries (user, month, year, sumAllAmount)
+    │   │           │   ├── SavingsGoalRepository.java                 # SavingsGoal queries with user ownership scoping
+    │   │           │   └── RecurringExpenseRepository.java            # RecurringExpense queries with user & due date scoping
     │   │           └── service/                                       # Business Logic Layer
     │   │               ├── AuthService.java                           # Registration, login, logout, current user
     │   │               ├── CustomUserDetailsService.java              # Spring Security UserDetails adapter
+    │   │               ├── AdminService.java                          # Stage 8 Admin user, category, and analytics logic
     │   │               ├── ExpenseService.java                        # Expense CRUD, search, filter, ownership logic
-    │   │               └── BudgetService.java                         # Budget CRUD, metrics, status, ownership logic
+    │   │               ├── BudgetService.java                         # Budget CRUD, metrics, status, alerts logic
+    │   │               ├── DashboardService.java                      # Dashboard calculations, aggregations & rule-based insights
+    │   │               ├── ReportService.java                         # Stage 7 reporting queries, breakdowns & comparisons
+    │   │               ├── CsvExportService.java                      # RFC 4180 CSV export builder
+    │   │               ├── PdfExportService.java                      # OpenPDF report document builder
+    │   │               ├── SavingsGoalService.java                    # Stage 9 Savings goal CRUD & contributions logic
+    │   │               ├── RecurringExpenseService.java               # Stage 9 Recurring expense CRUD & generation logic
+    │   │               ├── ProfileService.java                        # Stage 9 User profile & password management logic
+    │   │               └── AnalyticsService.java                      # Stage 9 Spending comparison & advanced analytics logic
     │   └── resources/
     │       ├── application.properties            # Portable Spring Boot configuration
     │       └── static/
     │           ├── index.html                    # Homepage & Stage status dashboard
     │           ├── expenses.html                 # Authenticated Expense Management interface
     │           ├── budgets.html                  # Authenticated Budget Management interface
+    │           ├── dashboard.html                # Authenticated Dashboard & Analytics interface
+    │           ├── reports.html                  # Authenticated Financial Reporting interface
+    │           ├── admin.html                    # Authenticated Admin Management interface
+    │           ├── goals.html                    # Authenticated Savings Goals interface
+    │           ├── recurring-expenses.html       # Authenticated Recurring Expenses interface
+    │           ├── profile.html                  # Authenticated User Profile & Settings interface
     │           ├── css/
-    │           │   └── style.css                 # Custom styles
+    │           │   └── style.css                 # Custom styles with @media print rules
     │           └── js/
     │               ├── app.js                    # Client logic for roadmap and health check
     │               ├── expenses.js               # Client logic for Expense CRUD & filtering
-    │               └── budgets.js                # Client logic for Budget CRUD & progress bar
-└── test/
-    └── java/
-        └── com/
-            └── smartfinancialexpenseanalysis/
-                ├── SmartFinancialExpenseAnalysisApplicationTests.java # Context load test
-                ├── controller/
-                │   ├── AuthControllerIntegrationTest.java             # Stage 3 Auth & Role test suite (10 tests)
-                │   ├── ExpenseControllerIntegrationTest.java          # Stage 4 Expense test suite (27 tests)
-                │   └── BudgetControllerIntegrationTest.java           # Stage 5 Budget test suite (26 tests)
-                └── repository/
-                    └── EntityRepositoryIntegrationTest.java           # Stage 2 Entity & Repo test suite (4 tests)
+    │               ├── budgets.js                # Client logic for Budget CRUD & progress bar
+    │               ├── dashboard.js              # Client logic for Dashboard metrics, charts & insights
+    │               ├── reports.js                # Client logic for Reports & CSV/PDF exports
+    │               ├── admin.js                  # Client logic for Admin management, categories & analytics
+    │               ├── goals.js                  # Client logic for Savings Goals & contributions
+    │               ├── recurring-expenses.js     # Client logic for Recurring expenses & generation
+    │               └── profile.js                # Client logic for Profile update & password change
+    └── test/
+        └── java/
+            └── com/
+                └── smartfinancialexpenseanalysis/
+                    ├── SmartFinancialExpenseAnalysisApplicationTests.java # Context load test
+                    ├── controller/
+                    │   ├── AuthControllerIntegrationTest.java             # Stage 3 Auth & Role test suite (10 tests)
+                    │   ├── ExpenseControllerIntegrationTest.java          # Stage 4 Expense test suite (29 tests)
+                    │   ├── BudgetControllerIntegrationTest.java           # Stage 5 Budget test suite (26 tests)
+                    │   ├── DashboardControllerIntegrationTest.java        # Stage 6 Dashboard & Analytics test suite (20 tests)
+                    │   ├── ReportControllerIntegrationTest.java           # Stage 7 Reports & Exports test suite (24 tests)
+                    │   ├── AdminControllerIntegrationTest.java            # Stage 8 Admin Management test suite (21 tests)
+                    │   ├── SavingsGoalControllerIntegrationTest.java      # Stage 9 Savings Goals test suite (7 tests)
+                    │   ├── RecurringExpenseControllerIntegrationTest.java  # Stage 9 Recurring Expenses test suite (7 tests)
+                    │   ├── ProfileControllerIntegrationTest.java          # Stage 9 User Profile test suite (7 tests)
+                    │   ├── BudgetAlertIntegrationTest.java                # Stage 9 Budget Alerts test suite (6 tests)
+                    │   ├── AnalyticsControllerIntegrationTest.java        # Stage 9 Analytics & Comparison test suite (4 tests)
+                    │   └── ...
+                    └── repository/
+                        └── EntityRepositoryIntegrationTest.java           # Stage 2 Entity & Repo test suite (4 tests)
 ```
 
 ---
@@ -1017,12 +1643,12 @@ Smart Financial Expense Analysis/
 - **Stage 2: Database & Entities** *(Completed)*
 - **Stage 3: Authentication** *(Completed)*
 - **Stage 4: Expense Management** *(Completed)*
-- **Stage 5: Budget Management** *(Active / Current)*
-- **Stage 6: Smart Analysis** *(Upcoming)*
-- **Stage 7: Dashboard** *(Upcoming)*
-- **Stage 8: Admin Panel** *(Upcoming)*
-- **Stage 9: Validation & Security** *(Upcoming)*
-- **Stage 10: Final UI Polish & Testing** *(Upcoming)*
+- **Stage 5: Budget Management** *(Completed)*
+- **Stage 6: Financial Dashboard & Analytics** *(Completed)*
+- **Stage 7: Data Export & Reports** *(Completed)*
+- **Stage 8: Admin Panel** *(Completed)*
+- **Stage 9: Advanced Features (Comparison, Alerts, Goals, Recurring, Profile, Filters)** *(Completed)*
+- **Stage 10: Final QA, Security, Portability & Deployment** *(Completed)*
 
 ---
 
@@ -1030,7 +1656,7 @@ Smart Financial Expense Analysis/
 - **Zero Committed Secrets**: Never commit real database passwords or credentials to Git.
 - **Environment Isolation**: `.env` and `.env.*` files are explicitly ignored by `.gitignore`.
 - **Sensible Defaults**: Development defaults (`root` user with empty password) are intended strictly for local development. Production deployments should always supply strong credentials via `DB_USERNAME` and `DB_PASSWORD`.
-- **No Third-Party AI Data Sharing**: All expense computation and categorization logic runs on the local server without sending sensitive financial data to external AI APIs.
+- **Zero Third-Party Data Sharing**: All expense computation and categorization logic runs on the local server without sending sensitive financial data to external cloud services.
 
 ---
 

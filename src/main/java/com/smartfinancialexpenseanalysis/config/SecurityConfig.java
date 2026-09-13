@@ -69,14 +69,21 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints
                 .requestMatchers("/api/auth/register", "/api/auth/login", "/api/health").permitAll()
-                .requestMatchers("/", "/index.html", "/expenses.html", "/budgets.html", "/css/**", "/js/**", "/favicon.ico").permitAll()
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/categories").permitAll()
+                .requestMatchers("/", "/index.html", "/expenses.html", "/budgets.html", "/dashboard.html", "/reports.html", "/admin.html", "/goals.html", "/recurring-expenses.html", "/profile.html", "/css/**", "/js/**", "/favicon.ico").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/categories", "/api/payment-options").permitAll()
                 // Admin-only endpoints
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                // Authenticated user endpoints
+                // Personal financial user endpoints (strictly denied to ADMIN)
+                .requestMatchers("/api/expenses/**").hasRole("USER")
+                .requestMatchers("/api/budgets/**").hasRole("USER")
+                .requestMatchers("/api/dashboard/**").hasRole("USER")
+                .requestMatchers("/api/reports/**").hasRole("USER")
+                .requestMatchers("/api/goals/**").hasRole("USER")
+                .requestMatchers("/api/recurring-expenses/**").hasRole("USER")
+                .requestMatchers("/api/analytics/**").hasRole("USER")
+                // Account profile & session endpoints (available to both USER and ADMIN)
+                .requestMatchers("/api/profile/**").authenticated()
                 .requestMatchers("/api/auth/me", "/api/auth/logout").authenticated()
-                .requestMatchers("/api/expenses/**").authenticated()
-                .requestMatchers("/api/budgets/**").authenticated()
                 // Any other endpoints require authentication
                 .anyRequest().authenticated()
             );
